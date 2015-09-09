@@ -87,6 +87,8 @@ int main (int argc, char **argv)
 	{
 		if (strcmp(argv[j],"-") != 0)
 			infiles[j-offset] = open(argv[j],O_RDONLY,0666); // remember to check for errors here
+		else
+			infiles[j-offset] = 0;
 		while((rd = read(infiles[j-offset],buf,buffersize)) != 0)
 		{
 			if (rd < 0)
