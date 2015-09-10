@@ -2,6 +2,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <unistd.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,70 +13,49 @@
 
 int main (int argc, char **argv)
 {
-	if (argc == 1) 			// if there are no arguments, exit.
-		return 0;	
-	int outfile = 1; 		// default to stdout
-	int infiles[100]; 		// default to stdin
+	if (argc == 1) return 0;	// if there are no arguments, exit.
+	int outfile = 1; 			// default to stdout
+	int infiles[100]; 			// default to stdin
 	int buffersize = BUFF_DEFAULT;
-	int maxflags = 5<argc?5:argc;
+	int bflag = 0, oflag = 0;	// default option flags to false
 
-	// Check for flags
-	// consider using getopt (man 3 getopt)
-	int i = 1;
-	int j = 1;
-	for (; i < maxflags; i++) // only need to check up to first 4 arguments for flags
+	// check for flags
+	char opt;
+	while((opt = getopt(argc, argv, "b:o:")) != -1)
 	{
-		if (strcmp(argv[i],"-b") == 0) // check for buffer size flag
+		switch(opt)
 		{
-			i++;
-			if (buffersize == BUFF_DEFAULT) // check if buffersize has already been initialized
-			{
-				if (i < maxflags ) // check that there are enough input arguments left
+			case 'b': // buffersize specified
+				if (bflag)
 				{
-					j = i + 1;
-					buffersize = atoi(argv[i]);
-					if (buffersize == 0)
-						perror("ERROR: Entered an invalid buffer size. \n");
+					fprintf(stderr,"WARNING: Attempted to initialize two buffersizes\n");
 				}
-				else
+				if ((buffersize = atoi(optarg)) == 0)
 				{
-					perror("ERROR: Missing buffersize argument. \n");
+					fprintf(stderr,"ERROR: Invalid buffer size\n");
 					return -1;
 				}
-			}
-			else
-			{
-				perror("ERROR: Attempted to reinitialize buffer; Buffer has already been initialized. \n");
-				return -1; // placeholder -- report an error about buffer size already initialized
-			}		
-		}
-		else if (strcmp(argv[i],"-o") == 0) // check for output file flag
-		{
-			i++;
-			if (outfile == 1) // check if outfile has already been opened
-			{
-				if (i < maxflags) // check that there are enough input arguments left
+				bflag = 1;
+				break;
+			case 'o': // output file specified
+				if (oflag)
+					fprintf(stderr,"WARNING: Attempted to open two output files\n");
+				if((outfile = open(optarg,O_WRONLY | O_CREAT, 0666)) == -1)
 				{
-					j = i + 1;
-					outfile = open(argv[i],O_WRONLY | O_CREAT, 0666);
-				}
-				else
-				{
-					perror("ERROR: Missing outfile argument. \n");
+					perror("ERROR: Could not open output file");
 					return -1;
 				}
-			}
-			else
-			{
-				perror("ERROR: Attempted to open more than one output file. \n");
+				oflag = 1;
+				break;
+			case ':':
+				fprintf(stderr,"ERROR: Option requires an argument: %c\n", (char)optopt);
 				return -1;
-			}
+			default:
+				break;
 		}
 	}
-	printf("%d %d\n",i,j);
 
-	// open input files
-	int offset = j;
+	// initialize buffer to size
 	char* buf;
 	if ((buf = malloc(buffersize)) == 0)
 	{
@@ -83,15 +64,26 @@ int main (int argc, char **argv)
 				buffersize, strerror(errno));
 		return -1;
 	}
+
+	// initialize indexing and buffer variables
+	int j = optind;
+	int offset = j;
 	int rd = 0;		// bytes read
 	int wr = 0;		// bytes written
 	int wlen = 0;	// progress in buffer
 
+	// iterate through non-flag inputs
 	for (; j < argc; j++)
 	{
 		// open the file input from argv
 		if (strcmp(argv[j],"-") != 0)
-			infiles[j-offset] = open(argv[j],O_RDONLY,0666); // remember to check for errors here
+		{
+			if ((infiles[j-offset] = open(argv[j],O_RDONLY,0666)) == -1)
+			{
+				fprintf(stderr,"ERROR: Unable to open input file %d: %s\n",infiles[j-offset],strerror(errno));
+				return -1;
+			}
+		}
 		else
 			infiles[j-offset] = 0;
 
@@ -100,13 +92,12 @@ int main (int argc, char **argv)
 		{
 			if (rd < 0)
 			{
-				perror("ERROR: Error while reading input");
+				perror("ERROR: Unable to read input");
 				free(buf);
 				return -1;
 			}
-			//printf("rd = %d\n",rd);
 
-			// Check for partial writes
+			// Check for partial writes & write to file
 			wlen = 0;
 			do
 			{
@@ -120,12 +111,11 @@ int main (int argc, char **argv)
 				}	
 			}
 			while(wlen < rd);
-			
 		}
 
 		// close the file if its not stdin
-		if (infiles[j-offset] != 0 &&
-			close(infiles[j-offset]) < 0)
+		if ((infiles[j-offset] != 0) &&
+			(close(infiles[j-offset]) < 0))
 		{
 			perror("ERROR: There was an error closing an input file");
 			free(buf);
@@ -133,6 +123,7 @@ int main (int argc, char **argv)
 		}
 	}
 
+	// free buffer memeory
 	free(buf);
 
 	// close output file if its not stdout
