@@ -29,3 +29,4 @@ for i in range(0, 19):
 	buffersize = str(pow(2,i))
 	print("buffersize = " + str(buffersize) + " bytes")
 	os.system("/usr/bin/time -f \"%E real,\t%U user,\t%S sys\" ./copycat -b " + buffersize + " -o xout.txt xa*")
+os.system("make clean")
