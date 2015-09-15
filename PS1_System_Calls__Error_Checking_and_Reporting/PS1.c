@@ -20,17 +20,48 @@
 
 #define BUFF_DEFAULT 1024	// default buffer size
 
+int readwrite(int fin, int fout, void *buf, size_t buffersize)
+{
+	int rd = 0, wr = 0, wlen = 0;
+	while((rd = read(fin,buf,buffersize)) != 0)
+	{
+		if (rd < 0)
+		{
+			perror("ERROR: Unable to read input");
+			free(buf);
+			return -1;
+		}
+
+		// Check for partial writes & write to file
+		wlen = 0;
+		do
+		{
+			wr = write(fout,buf+wlen,rd-wlen);
+			wlen = wlen + wr;
+			if (wr < 0)
+			{
+				perror("ERROR: Unable to write to output");
+				free(buf);
+				return -1;
+			}	
+		}
+		while(wlen < rd);
+	}
+	return 0; // exit with no error
+}
+
+
 int main (int argc, char **argv)
 {
-	if (argc == 1) return 0;	// if there are no arguments, exit.
 	int outfile = 1; 			// default to stdout
 	int infiles[100]; 			// default to stdin
 	int buffersize = BUFF_DEFAULT;
 	int bflag = 0, oflag = 0;	// default option flags to false
+	int rflag = 0;
 
 	// check for flags
 	char opt;
-	while((opt = getopt(argc, argv, "b:o:")) != -1)
+	while((opt = getopt(argc, argv, "+b:o:")) != -1)
 	{
 		switch(opt)
 		{
@@ -56,8 +87,8 @@ int main (int argc, char **argv)
 				}
 				oflag = 1;
 				break;
-			case ':':
-				fprintf(stderr,"ERROR: Option requires an argument: %c\n", (char)optopt);
+			case '?':
+				fprintf(stderr,"ERROR: The option -%c requires an argument\n",(char)optopt);
 				return -1;
 			default:
 				break;
@@ -77,9 +108,11 @@ int main (int argc, char **argv)
 	// initialize indexing and buffer variables
 	int j = optind;
 	int offset = j;
-	int rd = 0;		// bytes read
-	int wr = 0;		// bytes written
-	int wlen = 0;	// progress in buffer
+
+	// if there are no input args, read from stdin
+	if ( j >= argc)
+		if (readwrite(0,outfile,buf,buffersize) < 0)
+			return -1;
 
 	// iterate through non-flag inputs
 	for (; j < argc; j++)
@@ -97,31 +130,9 @@ int main (int argc, char **argv)
 			infiles[j-offset] = 0;
 
 		// read from file input and write to ouput
-		while((rd = read(infiles[j-offset],buf,buffersize)) != 0)
-		{
-			if (rd < 0)
-			{
-				perror("ERROR: Unable to read input");
-				free(buf);
-				return -1;
-			}
-
-			// Check for partial writes & write to file
-			wlen = 0;
-			do
-			{
-				wr = write(outfile,buf+wlen,rd-wlen);
-				wlen = wlen + wr;
-				if (wr < 0)
-				{
-					perror("ERROR: Unable to write to output");
-					free(buf);
-					return -1;
-				}	
-			}
-			while(wlen < rd);
-		}
-
+		if (readwrite(infiles[j-offset],outfile,buf,buffersize) < 0)
+			return -1;
+		
 		// close the file if its not stdin
 		if ((infiles[j-offset] != 0) &&
 			(close(infiles[j-offset]) < 0))

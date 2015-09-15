@@ -7,4 +7,4 @@ tex: *.tex
 	pdflatex PS1.tex
 
 clean:
-	ls -1 | grep -E -v 'PS1.c|Makefile|test.py|lipsum*|*.tex' | xargs rm -f
+	ls -1 | grep -E -v 'PS1.c|Makefile|test.py|lipsum.txt|*.tex' | xargs rm -f

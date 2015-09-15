@@ -27,17 +27,20 @@ RAM: & 6GB DDR3 1333Mhz \\
 
 \begin{lstlisting}
 
-ls -1 | grep -E -v 'PS1.c|Makefile|test.py|lipsum*|*.tex' | xargs rm -f
+ls -1 | grep -E -v 'PS1.c|Makefile|test.py|lipsum.txt|*.tex' | xargs rm -f
 gcc PS1.c -o copycat
 
 ---test basic functionality---
 echo "test input" > testinput.txt
-./copycat testinput.txt
+./copycat -o testoutput.txt testinput.txt testinput.txt
+./copycat testoutput.txt
+test input
 test input
 
 ---test unspecified buffersize---
 ./copycat -b
 ./copycat: option requires an argument -- 'b'
+ERROR: The option -b requires an argument
 
 ---test invalid buffer sizes---
 ./copycat -b buffersize -o xout.txt lipsum.txt
@@ -50,9 +53,10 @@ WARNING: Attempted to initialize two buffersizes
 ---test unspecified output file---
 ./copycat -o
 ./copycat: option requires an argument -- 'o'
+ERROR: The option -o requires an argument
 
 ---test multiple output files---
-./copycat -o xout.txt -o xout2.txt
+./copycat -o xout.txt -o xout2.txt lipsum.txt
 WARNING: Attempted to open two output files
 
 --test invalid output files---
@@ -172,17 +176,48 @@ As seen from the table, the runtime of copycat settles to around 0.02 seconds fo
 
 #define BUFF_DEFAULT 1024	// default buffer size
 
+int readwrite(int fin, int fout, void *buf, size_t buffersize)
+{
+	int rd = 0, wr = 0, wlen = 0;
+	while((rd = read(fin,buf,buffersize)) != 0)
+	{
+		if (rd < 0)
+		{
+			perror("ERROR: Unable to read input");
+			free(buf);
+			return -1;
+		}
+
+		// Check for partial writes & write to file
+		wlen = 0;
+		do
+		{
+			wr = write(fout,buf+wlen,rd-wlen);
+			wlen = wlen + wr;
+			if (wr < 0)
+			{
+				perror("ERROR: Unable to write to output");
+				free(buf);
+				return -1;
+			}	
+		}
+		while(wlen < rd);
+	}
+	return 0; // exit with no error
+}
+
+
 int main (int argc, char **argv)
 {
-	if (argc == 1) return 0;	// if there are no arguments, exit.
 	int outfile = 1; 			// default to stdout
 	int infiles[100]; 			// default to stdin
 	int buffersize = BUFF_DEFAULT;
 	int bflag = 0, oflag = 0;	// default option flags to false
+	int rflag = 0;
 
 	// check for flags
 	char opt;
-	while((opt = getopt(argc, argv, "b:o:")) != -1)
+	while((opt = getopt(argc, argv, "+b:o:")) != -1)
 	{
 		switch(opt)
 		{
@@ -208,8 +243,8 @@ int main (int argc, char **argv)
 				}
 				oflag = 1;
 				break;
-			case ':':
-				fprintf(stderr,"ERROR: Option requires an argument: %c\n", (char)optopt);
+			case '?':
+				fprintf(stderr,"ERROR: The option -%c requires an argument\n",(char)optopt);
 				return -1;
 			default:
 				break;
@@ -229,9 +264,11 @@ int main (int argc, char **argv)
 	// initialize indexing and buffer variables
 	int j = optind;
 	int offset = j;
-	int rd = 0;		// bytes read
-	int wr = 0;		// bytes written
-	int wlen = 0;	// progress in buffer
+
+	// if there are no input args, read from stdin
+	if ( j >= argc)
+		if (readwrite(0,outfile,buf,buffersize) < 0)
+			return -1;
 
 	// iterate through non-flag inputs
 	for (; j < argc; j++)
@@ -249,31 +286,9 @@ int main (int argc, char **argv)
 			infiles[j-offset] = 0;
 
 		// read from file input and write to ouput
-		while((rd = read(infiles[j-offset],buf,buffersize)) != 0)
-		{
-			if (rd < 0)
-			{
-				perror("ERROR: Unable to read input");
-				free(buf);
-				return -1;
-			}
-
-			// Check for partial writes & write to file
-			wlen = 0;
-			do
-			{
-				wr = write(outfile,buf+wlen,rd-wlen);
-				wlen = wlen + wr;
-				if (wr < 0)
-				{
-					perror("ERROR: Unable to write to output");
-					free(buf);
-					return -1;
-				}	
-			}
-			while(wlen < rd);
-		}
-
+		if (readwrite(infiles[j-offset],outfile,buf,buffersize) < 0)
+			return -1;
+		
 		// close the file if its not stdin
 		if ((infiles[j-offset] != 0) &&
 			(close(infiles[j-offset]) < 0))
@@ -319,7 +334,8 @@ os.system("split -n 10 lipsum.txt")
 
 print("\n---test basic functionality---")
 command("echo \"test input\" > testinput.txt")
-command("./copycat testinput.txt")
+command("./copycat -o testoutput.txt testinput.txt testinput.txt")
+command("./copycat testoutput.txt")
 
 print("\n---test unspecified buffersize---")
 command("./copycat -b")
@@ -350,6 +366,8 @@ command("./copycat -o xout.txt xa*")
 command("diff xout.txt lipsum.txt")
 
 print("\n---test speed for multiple buffer sizes---")
+os.system("for i in {1..20}; do cat lipsum.txt >> lipsum2.txt; done")
+os.system("truncate -s 1000000 lipsum2.txt")
 for i in range(0, 19):
 	buffersize = str(pow(2,i))
 	print("buffersize = " + str(buffersize) + " bytes")
