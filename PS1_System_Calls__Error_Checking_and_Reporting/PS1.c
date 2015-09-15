@@ -1,3 +1,12 @@
+/*
+	ECE 460 Computer Operating Systems
+	Problem Set 1
+	System Calls, Error Checking and Reporting
+
+	Author: Kelvin Lin
+*/
+
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

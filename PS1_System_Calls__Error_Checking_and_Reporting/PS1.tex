@@ -1,0 +1,374 @@
+\documentclass[12pt]{article}
+\usepackage{pgfplots}
+\usepackage[margin=1in]{geometry}
+\usepackage{listings}
+\lstset{
+    frame=single,
+    breaklines=true,
+    basicstyle=\tiny,
+}
+\title{PS1 System Calls, Error Checking and Reporting}
+\author{Kelvin Lin}
+
+\begin{document}
+
+\maketitle
+
+\section{System Properties}
+For the purposes of this project, a virtual machine running Ubuntu 14.04 was used.
+The virtual machine ran on a windows 7 PC with the following specs:
+
+\begin{tabular}{l l}
+CPU: & i7 920 \\
+RAM: & 6GB DDR3 1333Mhz \\
+\end{tabular}
+
+\section{Program Output and Testing}
+
+\begin{lstlisting}
+
+ls -1 | grep -E -v 'PS1.c|Makefile|test.py|lipsum*|*.tex' | xargs rm -f
+gcc PS1.c -o copycat
+
+---test basic functionality---
+echo "test input" > testinput.txt
+./copycat testinput.txt
+test input
+
+---test unspecified buffersize---
+./copycat -b
+./copycat: option requires an argument -- 'b'
+
+---test invalid buffer sizes---
+./copycat -b buffersize -o xout.txt lipsum.txt
+ERROR: Invalid buffer size
+
+---test multiple buffers---
+./copycat -b 10 -b 50 -o xout.txt lipsum.txt
+WARNING: Attempted to initialize two buffersizes
+
+---test unspecified output file---
+./copycat -o
+./copycat: option requires an argument -- 'o'
+
+---test multiple output files---
+./copycat -o xout.txt -o xout2.txt
+WARNING: Attempted to open two output files
+
+--test invalid output files---
+chmod 000 xout.txt
+./copycat -o xout.txt lipsum.txt
+ERROR: Could not open output file: Permission denied
+chmod 777 xout.txt
+
+---test invalid input files---
+./copycat -o xout.txt nonexistent file
+ERROR: Unable to open input file -1: No such file or directory
+
+---test multiple file concatenation---
+split -n 10 lipsum.txt
+./copycat -o xout.txt xa*
+diff xout.txt lipsum.txt
+
+---test speed for multiple buffer sizes---
+buffersize = 1 bytes
+0:14.41 real,	0.49 user,	11.83 sys
+buffersize = 2 bytes
+0:06.15 real,	0.30 user,	4.99 sys
+buffersize = 4 bytes
+0:03.29 real,	0.14 user,	2.56 sys
+buffersize = 8 bytes
+0:02.55 real,	0.08 user,	1.30 sys
+buffersize = 16 bytes
+0:01.34 real,	0.06 user,	0.63 sys
+buffersize = 32 bytes
+0:01.09 real,	0.00 user,	0.42 sys
+buffersize = 64 bytes
+0:00.45 real,	0.02 user,	0.14 sys
+buffersize = 128 bytes
+0:00.21 real,	0.00 user,	0.08 sys
+buffersize = 256 bytes
+0:00.10 real,	0.00 user,	0.04 sys
+buffersize = 512 bytes
+0:00.06 real,	0.00 user,	0.02 sys
+buffersize = 1024 bytes
+0:00.05 real,	0.00 user,	0.02 sys
+buffersize = 2048 bytes
+0:00.02 real,	0.00 user,	0.00 sys
+buffersize = 4096 bytes
+0:00.02 real,	0.00 user,	0.00 sys
+buffersize = 8192 bytes
+0:00.02 real,	0.00 user,	0.00 sys
+buffersize = 16384 bytes
+0:00.02 real,	0.00 user,	0.00 sys
+buffersize = 32768 bytes
+0:00.02 real,	0.00 user,	0.00 sys
+buffersize = 65536 bytes
+0:00.02 real,	0.00 user,	0.00 sys
+buffersize = 131072 bytes
+0:00.02 real,	0.00 user,	0.00 sys
+buffersize = 262144 bytes
+0:00.02 real,	0.00 user,	0.00 sys
+ls -1 | grep -E -v 'PS1.c|Makefile|test.py|lipsum*|*.tex' | xargs rm -f
+\end{lstlisting}
+
+\section{Buffer Size Analysis}
+
+\begin{tabular}{l l l}
+ & Buffer Size (bytes) & Time (s) \\
+0 & 1 & 14.41 \\
+1 & 2 & 6.15 \\
+2 & 4 & 3.29 \\
+3 & 8 & 2.55 \\
+4 & 16 & 1.34 \\
+5 & 32 & 1.09 \\
+6 & 64 & 0.45 \\
+7 & 128 & 0.21 \\
+8 & 256 & 0.10 \\
+9 & 512 & 0.06 \\
+10 & 1024 & 0.05 \\
+11 & 2048 & 0.02 \\
+12 & 4096 & 0.02 \\
+13 & 8192 & 0.02 \\
+14 & 16384 & 0.02 \\
+15 & 32768 & 0.02 \\
+16 & 65536 & 0.02 \\
+17 & 131072 & 0.02 \\
+18 & 262144 & 0.02 \\
+\end{tabular}
+\\
+\\
+Using the UNIX time command, the copycat program's runtime was recorded for varying buffersizes.
+These sizes varied from $2^0$ to $2^18$ bytes long (0 - 256K).
+Copycat was tested using a 10mb text file filled with lorem ipsum.
+Starting from a small buffer size, the program takes many read/write cycles to move the appropriate bits from one file to another.
+The program's rutime is quite large as a result.
+However, as the buffer size becomes approximately 2048 bytes long, the amount of time taken by making the system calls becomes negligible compared to the actual reading/writing of the bytes.
+As seen from the table, the runtime of copycat settles to around 0.02 seconds for this test case.
+
+
+\section{Source Code}
+\subsection{copycat}
+\begin{lstlisting}
+/*
+	ECE 460 Computer Operating Systems
+	Problem Set 1
+	System Calls, Error Checking and Reporting
+
+	Author: Kelvin Lin
+*/
+
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#include <unistd.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+
+#define BUFF_DEFAULT 1024	// default buffer size
+
+int main (int argc, char **argv)
+{
+	if (argc == 1) return 0;	// if there are no arguments, exit.
+	int outfile = 1; 			// default to stdout
+	int infiles[100]; 			// default to stdin
+	int buffersize = BUFF_DEFAULT;
+	int bflag = 0, oflag = 0;	// default option flags to false
+
+	// check for flags
+	char opt;
+	while((opt = getopt(argc, argv, "b:o:")) != -1)
+	{
+		switch(opt)
+		{
+			case 'b': // buffersize specified
+				if (bflag)
+				{
+					fprintf(stderr,"WARNING: Attempted to initialize two buffersizes\n");
+				}
+				if ((buffersize = atoi(optarg)) == 0)
+				{
+					fprintf(stderr,"ERROR: Invalid buffer size\n");
+					return -1;
+				}
+				bflag = 1;
+				break;
+			case 'o': // output file specified
+				if (oflag)
+					fprintf(stderr,"WARNING: Attempted to open two output files\n");
+				if((outfile = open(optarg,O_WRONLY | O_CREAT, 0666)) == -1)
+				{
+					perror("ERROR: Could not open output file");
+					return -1;
+				}
+				oflag = 1;
+				break;
+			case ':':
+				fprintf(stderr,"ERROR: Option requires an argument: %c\n", (char)optopt);
+				return -1;
+			default:
+				break;
+		}
+	}
+
+	// initialize buffer to size
+	char* buf;
+	if ((buf = malloc(buffersize)) == 0)
+	{
+		fprintf(stderr, 
+				"ERROR: Could not allocate %d bytes of memory to buffer with malloc: %s\n", 
+				buffersize, strerror(errno));
+		return -1;
+	}
+
+	// initialize indexing and buffer variables
+	int j = optind;
+	int offset = j;
+	int rd = 0;		// bytes read
+	int wr = 0;		// bytes written
+	int wlen = 0;	// progress in buffer
+
+	// iterate through non-flag inputs
+	for (; j < argc; j++)
+	{
+		// open the file input from argv
+		if (strcmp(argv[j],"-") != 0)
+		{
+			if ((infiles[j-offset] = open(argv[j],O_RDONLY,0666)) == -1)
+			{
+				fprintf(stderr,"ERROR: Unable to open input file %d: %s\n",infiles[j-offset],strerror(errno));
+				return -1;
+			}
+		}
+		else
+			infiles[j-offset] = 0;
+
+		// read from file input and write to ouput
+		while((rd = read(infiles[j-offset],buf,buffersize)) != 0)
+		{
+			if (rd < 0)
+			{
+				perror("ERROR: Unable to read input");
+				free(buf);
+				return -1;
+			}
+
+			// Check for partial writes & write to file
+			wlen = 0;
+			do
+			{
+				wr = write(outfile,buf+wlen,rd-wlen);
+				wlen = wlen + wr;
+				if (wr < 0)
+				{
+					perror("ERROR: Unable to write to output");
+					free(buf);
+					return -1;
+				}	
+			}
+			while(wlen < rd);
+		}
+
+		// close the file if its not stdin
+		if ((infiles[j-offset] != 0) &&
+			(close(infiles[j-offset]) < 0))
+		{
+			perror("ERROR: There was an error closing an input file");
+			free(buf);
+			return -1;
+		}
+	}
+
+	// free buffer memeory
+	free(buf);
+
+	// close output file if its not stdout
+	if (outfile != 1 &&
+		close(outfile) < 0)
+	{
+		perror("ERROR: There was an error closing the output file");
+		return -1;
+	}
+
+	// no errors were encountered
+	// exit program
+	return 0; 
+}
+\end{lstlisting}
+
+\subsection{Test Script}
+\begin{lstlisting}
+# Test Script for copycat
+
+import os
+import math
+
+def command(com):
+	print(com)
+	os.system(com)
+
+# generate test files
+os.system("make clean")
+os.system("make copycat")
+os.system("split -n 10 lipsum.txt")
+
+print("\n---test basic functionality---")
+command("echo \"test input\" > testinput.txt")
+command("./copycat testinput.txt")
+
+print("\n---test unspecified buffersize---")
+command("./copycat -b")
+
+print("\n---test invalid buffer sizes---")
+command("./copycat -b buffersize -o xout.txt lipsum.txt")
+
+print("\n---test multiple buffers---")
+command("./copycat -b 10 -b 50 -o xout.txt lipsum.txt")
+
+print("\n---test unspecified output file---")
+command("./copycat -o")
+
+print("\n---test multiple output files---")
+command("./copycat -o xout.txt -o xout2.txt")
+
+print("\n--test invalid output files---")
+command("chmod 000 xout.txt")
+command("./copycat -o xout.txt lipsum.txt")
+command("chmod 777 xout.txt")
+
+print("\n---test invalid input files---")
+command("./copycat -o xout.txt nonexistent file")
+
+print("\n---test multiple file concatenation---")
+command("split -n 10 lipsum.txt")
+command("./copycat -o xout.txt xa*")
+command("diff xout.txt lipsum.txt")
+
+print("\n---test speed for multiple buffer sizes---")
+for i in range(0, 19):
+	buffersize = str(pow(2,i))
+	print("buffersize = " + str(buffersize) + " bytes")
+	os.system("/usr/bin/time -f \"%E real,\t%U user,\t%S sys\" ./copycat -b " + buffersize + " -o xout.txt lipsum2.txt")
+os.system("make clean")
+\end{lstlisting}
+\subsection{Makefile}
+
+\begin{lstlisting}
+all: copycat tex
+
+copycat: PS1.c
+	gcc PS1.c -o copycat
+
+tex: *.tex
+	pdflatex PS1.tex
+
+clean:
+	ls -1 | grep -E -v 'PS1.c|Makefile|test.py|lipsum*|*.tex' | xargs rm -f
+\end{lstlisting}
+
+\end{document}

@@ -9,8 +9,12 @@ def command(com):
 
 # generate test files
 os.system("make clean")
-os.system("make")
+os.system("make copycat")
 os.system("split -n 10 lipsum.txt")
+
+print("\n---test basic functionality---")
+command("echo \"test input\" > testinput.txt")
+command("./copycat testinput.txt")
 
 print("\n---test unspecified buffersize---")
 command("./copycat -b")
@@ -44,5 +48,5 @@ print("\n---test speed for multiple buffer sizes---")
 for i in range(0, 19):
 	buffersize = str(pow(2,i))
 	print("buffersize = " + str(buffersize) + " bytes")
-	os.system("/usr/bin/time -f \"%E real,\t%U user,\t%S sys\" ./copycat -b " + buffersize + " -o xout.txt xa*")
+	os.system("/usr/bin/time -f \"%E real,\t%U user,\t%S sys\" ./copycat -b " + buffersize + " -o xout.txt lipsum.txt")
 os.system("make clean")
