@@ -14,10 +14,19 @@
 #include <unistd.h>		// getcwd
 #include <errno.h>		// errno
 #include <string.h>
+#include <limits.h>
+
+char path[128];
 
 int lsDir(DIR *dirp)
 {
-	struct dirent *tdir = malloc(sizeof (struct dirent));
+	if (dirp == NULL)
+	{
+		perror("Cannot list NULL pointer\n");
+		return -1;
+	}
+	//struct dirent *tdir = malloc(sizeof (struct dirent));
+	struct dirent *tdir;
 	int i;
 	for(i = 0; i < 2; i++)
 	{
@@ -27,33 +36,32 @@ int lsDir(DIR *dirp)
 			return -1;
 		}
 	}
-	while( (tdir = readdir(dirp)) != NULL)
+	while( (tdir = readdir(dirp)) )
 	{
 		/*
 		printf("the current d_type is: %c\n",tdir->d_type);
 		printf("DT_DIR = %c \nDT_REG = %c \nDT_BLK = %c \nDT_CHR = %c \n",
 				DT_DIR,DT_REG,DT_BLK,DT_CHR);
 				*/
+		realpath(tdir->d_name,path);
 		switch(tdir->d_type)
 		{
 			case DT_DIR:
 				// print stuff about current tdir
-				printf("Now listing: %s\n",tdir->d_name);
-				if (!opendir(tdir->d_name))
+				printf("Now listing: %s\n",path);
+				if (opendir(path) == NULL)
 				{
-					fprintf(stderr,"could not run opendir line 42. d_name = %s: %s\n",tdir->d_name,strerror(errno));
-					if(tdir)
-						free(tdir);
+					fprintf(stderr,"could not open directory %s: %s\n",path,strerror(errno));
+					//if(tdir) free(tdir);
 					return -1;
 				}
-				if ((lsDir(opendir(tdir->d_name))) == -1)
+				if ((lsDir(opendir(path))) == -1)
 				{
 					fprintf
 						(stderr,"could not open directory %s for listing: %s\n",
 							tdir->d_name,
 								strerror(errno));
-					if(tdir)
-						free(tdir);
+					//if(tdir) free(tdir);
 					return -1;
 				}
 				break;
@@ -69,8 +77,7 @@ int lsDir(DIR *dirp)
 				break;
 		}
 	}
-	if(tdir)
-		free(tdir);
+	//if(tdir) free(tdir);
 	return 0;
 }
 
@@ -85,5 +92,6 @@ int main(int argc, char **argv)
 		return -1; // error report here
 	}
 	printf("running lsDir on %s\n",argv[1]);
+	realpath(argv[1],path);
 	lsDir(tdir);
 }
