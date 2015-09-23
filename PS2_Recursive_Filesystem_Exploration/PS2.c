@@ -23,7 +23,7 @@ int mtime;
 //int lsDir(DIR *dirp)
 int lsDir(char *path)
 {
-	struct dirent *tdir = malloc(sizeof(struct dirent));
+	struct dirent *tdir;
 	struct stat buf;// = malloc(sizeof(struct stat));
 	DIR *tdirp, *odirp;
 	char cPath[256];
@@ -33,22 +33,23 @@ int lsDir(char *path)
 	{
 		perror("Cannot list NULL pointer\n");
 		//if(buf) free(buf);
-		if(tdir) free(tdir);
+		//if(tdir) free(tdir);
 		return -1;
-	}
-	int i;
-	for(i = 0; i < 2; i++)
+	}	 
+	while( tdir = readdir(tdirp) )
 	{
-		if ( (tdir = readdir(tdirp)) == NULL)
+		if (tdir == NULL)
 		{
 			perror("Could not open file\n");
 			//if(buf) free(buf);
-			if(tdir) free(tdir);
+			//if(tdir) free(tdir);
 			return -1;
-		} 
-	}
-	while( (tdir = readdir(tdirp)) )
-	{
+		}
+		if (!strcmp(tdir->d_name,".")||!strcmp(tdir->d_name,".."))
+		{
+			//printf("skipping %s\n",tdir->d_name);
+			continue;
+		}
 		/*
 		printf("the current d_type is: %c\n",tdir->d_type);
 		printf("DT_DIR = %c \nDT_REG = %c \nDT_BLK = %c \nDT_CHR = %c \n",
@@ -66,21 +67,20 @@ int lsDir(char *path)
 				{
 					fprintf(stderr,"could not open directory %s: %s\n",cPath+rootlen,strerror(errno));
 					//if(buf) free(buf);
-					if(tdir) free(tdir);
+					//if(tdir) free(tdir);
 					return -1;
 				}
 				if ((lsDir(cPath)) == -1)
 				{
 					fprintf(stderr,"could not open directory %s for listing: %s\n",tdir->d_name,strerror(errno));
 					//if(buf) free(buf);
-					if(tdir) free(tdir);
+					//if(tdir) free(tdir);
 					return -1;
 				}
 				break;
 			case DT_REG:
 				// print stuff about current file
 				//printf("%s\n",cPath+rootlen);
-				printf("%s\n",cPath+rootlen);
 				if(lstat(cPath,&buf) < 0)
 				{
 					//if(buf) free(buf);
@@ -88,14 +88,15 @@ int lsDir(char *path)
 					fprintf(stderr,"could not stat file %s: %s",cPath+rootlen,strerror(errno));
 					return -1;
 				}
-				// printf("%04o %d %s %d %s %s",
-				// 	buf.st_dev,
-				// 	buf.st_ino,
-				// 	buf.st_mode,
-				// 	buf.st_nlink,
-				// 	buf.st_uid,
-				// 	buf.st_gid
-				// 	);
+				printf("%04o/%d %d ",//%s %d %s %s",
+					buf.st_dev,
+					buf.st_ino,
+					//buf.st_mode
+					buf.st_nlink
+					//buf.st_uid,
+					//buf.st_gid
+					);
+					printf("%s\n",cPath+rootlen);
 				break;
 			case DT_BLK:
 				break;
@@ -106,7 +107,7 @@ int lsDir(char *path)
 		}
 	}
 	//if(buf) free(buf);
-	if(tdir) free(tdir);
+	//if(tdir) free(tdir);
 	return 0;
 }
 
@@ -146,6 +147,6 @@ int main(int argc, char **argv)
 	//printf("running lsDir on %s\n",tdir->d_name);
 	realpath(tmp,rootdir);
 	rootlen = strlen(rootdir)+1;
-	//printf("The root path is: \n%s\n",rootdir);
+	printf("The root path is: \n%s\n",rootdir);
 	lsDir(rootdir);
 }
