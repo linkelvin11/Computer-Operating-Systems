@@ -15,10 +15,45 @@
 #include <errno.h>		// errno
 #include <string.h>
 #include <limits.h>
+#include <pwd.h>		// getpwnam
+#include <grp.h>		// getgrgid	
+#include <time.h>		// strftime
 
 int rootlen;
 char uname[256];
 int mtime;
+char tmp[256];
+
+int printStat(struct stat buf, int isLink, char * cPath)
+{
+	char c;
+	printf("%04o/%d ",//%s %d %s %s",
+		buf.st_dev,
+		buf.st_ino);
+	if (isLink) c = 'l';
+	else if (S_ISDIR(buf.st_mode)) c = 'd';
+	else if (S_ISBLK(buf.st_mode)) c = 'b';
+	else if (S_ISCHR(buf.st_mode)) c = 'c';
+	else if (S_ISFIFO(buf.st_mode)) c = 'p';
+	else c = '-';
+	printf( "%c",c );
+	printf( (buf.st_mode & S_IRUSR) ? "r" : "-");
+	printf( (buf.st_mode & S_IWUSR) ? "w" : "-");
+	printf( (buf.st_mode & S_IXUSR) ? "x" : "-");
+	printf( (buf.st_mode & S_IRGRP) ? "r" : "-");
+	printf( (buf.st_mode & S_IWGRP) ? "w" : "-");
+	printf( (buf.st_mode & S_IXGRP) ? "x" : "-");
+	printf( (buf.st_mode & S_IROTH) ? "r" : "-");
+	printf( (buf.st_mode & S_IWOTH) ? "w" : "-");
+	printf( (buf.st_mode & S_IXOTH) ? "x" : "-");
+	printf( " %d",buf.st_nlink );
+	printf( " %s %s",getpwuid(buf.st_uid)->pw_name
+						,getgrgid(buf.st_gid)->gr_name );
+	printf( " %ld\t",buf.st_size );
+	strftime(tmp, 18,"%y-%m-%d %I:%M",localtime(&buf.st_mtime));
+	printf( " %s",tmp);
+	printf(" %s\n",cPath+rootlen);
+}
 
 //int lsDir(DIR *dirp)
 int lsDir(char *path)
@@ -88,15 +123,7 @@ int lsDir(char *path)
 					fprintf(stderr,"could not stat file %s: %s",cPath+rootlen,strerror(errno));
 					return -1;
 				}
-				printf("%04o/%d %d ",//%s %d %s %s",
-					buf.st_dev,
-					buf.st_ino,
-					//buf.st_mode
-					buf.st_nlink
-					//buf.st_uid,
-					//buf.st_gid
-					);
-					printf("%s\n",cPath+rootlen);
+				printStat(buf,cPath,0);
 				break;
 			case DT_BLK:
 				break;
@@ -114,7 +141,6 @@ int lsDir(char *path)
 int main(int argc, char **argv)
 {
 	char rootdir[256];
-	char tmp[256];
 
 	char opt;
 	while((opt = getopt(argc, argv, "+u:m:")) != -1)
