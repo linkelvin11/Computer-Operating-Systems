@@ -153,7 +153,8 @@ int lsDir(char *path)
 int getvol(char *path)
 {
     struct stat buf;
-    stat(strcat(path,"/."),&buf);
+    strcpy(tmp,path);
+    stat(strcat(tmp,"/."),&buf);
     vol = buf.st_dev;
     printf("volume: %d\n",vol);
     return 0;
@@ -198,8 +199,9 @@ int main(int argc, char **argv)
     {
         strcpy(tmp,argv[optind]);
     }
-
+    printf("root beer: %s\n",rootdir);
     realpath(tmp,rootdir);
+    printf("root deer: %s\n",rootdir);
     rootlen = strlen(rootdir)+1;
     if (!getvol(rootdir))
         lsDir(rootdir);
