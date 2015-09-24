@@ -22,6 +22,7 @@
 #include <regex.h>
 
 int rootlen;
+int vol;
 char uname[256] = "";
 int mtime = 0, curtime = 0;
 int uid = -2;
@@ -121,6 +122,8 @@ int lsDir(char *path)
                     fprintf(stderr,"could not open directory %s: %s\n",cPath+rootlen,strerror(errno));
                     return -1;
                 }
+                if (buf.st_dev != vol)
+                    printf("not in my house!\n");
                 if ((lsDir(cPath)) == -1)
                 {
                     fprintf(stderr,"could not open directory %s for listing: %s\n",tdir->d_name,strerror(errno));
@@ -141,6 +144,15 @@ int lsDir(char *path)
         }
     }
     return 0; // return with no errors
+}
+
+int getvol(char *path)
+{
+    struct stat buf;
+    stat(strcat(path,"/."),&buf);
+    vol = buf.st_dev;
+    printf("volume: %d\n",vol);
+    return 0;
 }
 
 int main(int argc, char **argv)
@@ -180,10 +192,9 @@ int main(int argc, char **argv)
         strcpy(tmp,argv[optind]);
     }
 
-
-    //printf("running lsDir on %s\n",tdir->d_name);
     realpath(tmp,rootdir);
     rootlen = strlen(rootdir)+1;
-    //printf("The root path is: \n%s\n",rootdir);
-    lsDir(rootdir);
+    if (!getvol(rootdir))
+        lsDir(rootdir);
+    return 0;
 }
