@@ -29,6 +29,11 @@ int uid = -2;
 char tmp[256];
 int xflag = 0;
 
+int isLink(struct stat buf)
+{
+    return (S_ISLNK(buf.st_mode) ? 1:0);
+}
+
 void printStat(struct stat buf,char * cPath)
 {
     if (uid >= -1)
@@ -74,8 +79,14 @@ void printStat(struct stat buf,char * cPath)
     printf( (buf.st_mode & S_IWOTH) ? "w" : "-");
     printf( (buf.st_mode & S_IXOTH) ? "x" : "-");
     printf( " %d",buf.st_nlink );
-    printf( " %s %s",getpwuid(buf.st_uid)->pw_name
-                    ,getgrgid(buf.st_gid)->gr_name);
+
+    char uid_str[256];
+    char gid_str[256];
+    (getpwuid(buf.st_uid) != NULL) ? strcpy(uid_str,getpwuid(buf.st_uid)->pw_name) : sprintf(uid_str,"%d",buf.st_uid);
+    (getgrgid(buf.st_gid) != NULL) ? strcpy(gid_str,getgrgid(buf.st_gid)->gr_name) : sprintf(gid_str,"%d",buf.st_gid);
+    
+    printf( " %s %s",uid_str
+                    ,gid_str);
 
     if (S_ISBLK(buf.st_mode)||S_ISCHR(buf.st_mode))
         printf( " 0x%x",buf.st_dev );
@@ -112,7 +123,7 @@ int lsDir(char *path)
     {
         if (!strcmp(tdir->d_name,".")||!strcmp(tdir->d_name,".."))
             continue;
-        snprintf(cPath,256,"%s%s%s",path,"/",tdir->d_name);
+        snprintf(cPath,256,"%s/%s",path,tdir->d_name);
         switch(tdir->d_type)
         {
             case DT_DIR:
@@ -125,7 +136,8 @@ int lsDir(char *path)
                 printStat(buf,cPath);
                 if ((odirp = opendir(cPath)) == NULL)
                 {
-                    fprintf(stderr,"could not open directory %s: %s\n",cPath,strerror(errno));
+                    fprintf(stderr,"could not open directory %s: %s\n",cPath+rootlen,strerror(errno));
+                    continue;
                     return -1;
                 }
                 if ((lsDir(cPath)) == -1)
@@ -140,7 +152,8 @@ int lsDir(char *path)
             default:
                 if(lstat(cPath,&buf) < 0)
                 {
-                    fprintf(stderr,"could not stat file %s: %s",cPath+rootlen,strerror(errno));
+                    fprintf(stderr,"could not stat file %s: %s\n",cPath+rootlen,strerror(errno));
+                    continue;
                     return -1;
                 }
                 printStat(buf,cPath);
@@ -165,7 +178,7 @@ int main(int argc, char **argv)
     char rootdir[256];
     regex_t regex;
     char opt;
-    while((opt = getopt(argc, argv, "+u:m:x")) != -1)
+    while((opt = getopt(argc, argv, "+u:m:xl")) != -1)
     {
         switch(opt)
         {
@@ -184,6 +197,8 @@ int main(int argc, char **argv)
                 break;
             case 'x':
                 xflag = 1;
+                break;
+            case 'l':
                 break;
             case '?':
                 return -1;
