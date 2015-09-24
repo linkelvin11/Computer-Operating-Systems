@@ -27,7 +27,7 @@ char uname[256] = "";
 int mtime = 0, curtime = 0;
 int uid = -2;
 char tmp[256];
-int xflag = 0;
+int xflag = 0,lflag = 0;
 int loopCheck[2][1024];
 char loopCheckPath[1024][256];
 
@@ -54,15 +54,18 @@ int isLink(struct stat buf)
     return (S_ISLNK(buf.st_mode) ? 1:0);
 }
 
-void printStat(struct stat buf,char * cPath)
+void printStat(struct stat buf,char * cPath, int typeFlag)
 {
+    if (lflag && !S_ISLNK(buf.st_mode))
+        return;
     if (uid >= -1)
     {
         if (uid == -1)
         {
             if (!strcmp(uname,""))
                 return;
-            if (strcmp(uname,getpwuid(buf.st_uid)->pw_name))
+            if (getpwuid(buf.st_uid) != NULL) strcpy(tmp,getpwuid(buf.st_uid)->pw_name); else sprintf(tmp,"%d",buf.st_uid);
+            if (strcmp(uname,tmp))
                 return;
         }
         else if (uid != buf.st_uid)
@@ -81,13 +84,20 @@ void printStat(struct stat buf,char * cPath)
     char c;
     printf("%04o/%lld ",buf.st_dev,
                         buf.st_ino);
-    if      (S_ISLNK(buf.st_mode)) c = 'l';
-    else if (S_ISDIR(buf.st_mode)) c = 'd';
-    else if (S_ISBLK(buf.st_mode)) c = 'b';
-    else if (S_ISCHR(buf.st_mode)) c = 'c';
-    else if (S_ISFIFO(buf.st_mode)) c = 'p';
-    else c = '-';
-    printf( "%c",c );
+    if (typeFlag)
+    {
+        printf("%d",typeFlag);
+    }
+    else
+    {
+        if      (S_ISLNK(buf.st_mode)) c = 'l';
+        else if (S_ISDIR(buf.st_mode)) c = 'd';
+        else if (S_ISBLK(buf.st_mode)) c = 'b';
+        else if (S_ISCHR(buf.st_mode)) c = 'c';
+        else if (S_ISFIFO(buf.st_mode)) c = 'p';
+        else c = '-';
+        printf( "%c",c );
+    }
 
     printf( (buf.st_mode & S_IRUSR) ? "r" : "-");
     printf( (buf.st_mode & S_IWUSR) ? "w" : "-");
@@ -102,8 +112,8 @@ void printStat(struct stat buf,char * cPath)
 
     char uid_str[256];
     char gid_str[256];
-    (getpwuid(buf.st_uid) != NULL) ? strcpy(uid_str,getpwuid(buf.st_uid)->pw_name) : sprintf(uid_str,"%d",buf.st_uid);
-    (getgrgid(buf.st_gid) != NULL) ? strcpy(gid_str,getgrgid(buf.st_gid)->gr_name) : sprintf(gid_str,"%d",buf.st_gid);
+    if (getpwuid(buf.st_uid) != NULL) strcpy(uid_str,getpwuid(buf.st_uid)->pw_name); else sprintf(uid_str,"%d",buf.st_uid);
+    if (getgrgid(buf.st_gid) != NULL) strcpy(gid_str,getgrgid(buf.st_gid)->gr_name); else sprintf(gid_str,"%d",buf.st_gid);
     
     printf( " %s %s",uid_str
                     ,gid_str);
@@ -133,6 +143,7 @@ int lsDir(char *path)
     DIR *tdirp, *odirp;
     char cPath[256];
     int loopNum;
+    int statres = 0;
 
     tdirp = opendir(path);
     if (tdirp == NULL)
@@ -145,10 +156,11 @@ int lsDir(char *path)
         if (!strcmp(tdir->d_name,".")||!strcmp(tdir->d_name,".."))
             continue;
         snprintf(cPath,256,"%s/%s",path,tdir->d_name);
+        statres = lstat(cPath,&buf);
         switch(tdir->d_type)
         {
             case DT_DIR:
-                lstat(cPath,&buf);
+                
                 if ((loopNum = isLoop(buf.st_dev,buf.st_ino,cPath+rootlen)))
                 {
                     loopNum--;
@@ -161,7 +173,7 @@ int lsDir(char *path)
                     printf("Found new device %04o for file %s, skipping file.\n",buf.st_dev,cPath+rootlen);
                     return -1;
                 }
-                printStat(buf,cPath);
+                printStat(buf,cPath,0);
                 if ((odirp = opendir(cPath)) == NULL)
                 {
                     fprintf(stderr,"could not open directory %s: %s\n",cPath+rootlen,strerror(errno));
@@ -170,7 +182,6 @@ int lsDir(char *path)
                 }
                 if ((lsDir(cPath)) == -1)
                 {
-                    //fprintf(stderr,"could not open directory %s for listing: %s\n",tdir->d_name,strerror(errno));
                     return -1;
                 }
                 break;
@@ -178,13 +189,13 @@ int lsDir(char *path)
             case DT_BLK:
             case DT_CHR:
             default:
-                if(lstat(cPath,&buf) < 0)
+                if(statres < 0)
                 {
                     fprintf(stderr,"could not stat file %s: %s\n",cPath+rootlen,strerror(errno));
-                    //continue;
+                    continue;
                     return -1;
                 }
-                printStat(buf,cPath);
+                printStat(buf,cPath,0);
                 break;
         }
     }
@@ -197,7 +208,6 @@ int getvol(char *path)
     strcpy(tmp,path);
     stat(strcat(tmp,"/."),&buf);
     vol = buf.st_dev;
-    printf("volume: %d\n",vol);
     return 0;
 }
 
@@ -227,6 +237,7 @@ int main(int argc, char **argv)
                 xflag = 1;
                 break;
             case 'l':
+                lflag = 1;
                 break;
             case '?':
                 return -1;
@@ -242,9 +253,7 @@ int main(int argc, char **argv)
     {
         strcpy(tmp,argv[optind]);
     }
-    printf("root beer: %s\n",rootdir);
     realpath(tmp,rootdir);
-    printf("root deer: %s\n",rootdir);
     rootlen = strlen(rootdir)+1;
     if (!getvol(rootdir))
         lsDir(rootdir);

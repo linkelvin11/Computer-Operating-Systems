@@ -1,7 +1,7 @@
 all: walker
 
 walker: PS2.c
-	gcc -Wno-format PS2.c -o walker
+	gcc -Wno-format -Wno-coverage-mismatch PS2.c -o walker
 
 tex: *.tex
 	pdflatex PS2.tex
