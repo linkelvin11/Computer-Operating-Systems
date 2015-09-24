@@ -27,6 +27,7 @@ char uname[256] = "";
 int mtime = 0, curtime = 0;
 int uid = -2;
 char tmp[256];
+int xflag = 0;
 
 void printStat(struct stat buf,char * cPath)
 {
@@ -116,17 +117,20 @@ int lsDir(char *path)
         {
             case DT_DIR:
                 lstat(cPath,&buf);
+                if (xflag && buf.st_dev != vol)
+                {
+                    printf("Found new device %04o for file %s, skipping file.\n",buf.st_dev,cPath+rootlen);
+                    return -1;
+                }
                 printStat(buf,cPath);
                 if ((odirp = opendir(cPath)) == NULL)
                 {
-                    fprintf(stderr,"could not open directory %s: %s\n",cPath+rootlen,strerror(errno));
+                    fprintf(stderr,"could not open directory %s: %s\n",cPath,strerror(errno));
                     return -1;
                 }
-                if (buf.st_dev != vol)
-                    printf("not in my house!\n");
                 if ((lsDir(cPath)) == -1)
                 {
-                    fprintf(stderr,"could not open directory %s for listing: %s\n",tdir->d_name,strerror(errno));
+                    //fprintf(stderr,"could not open directory %s for listing: %s\n",tdir->d_name,strerror(errno));
                     return -1;
                 }
                 break;
@@ -160,7 +164,7 @@ int main(int argc, char **argv)
     char rootdir[256];
     regex_t regex;
     char opt;
-    while((opt = getopt(argc, argv, "+u:m:")) != -1)
+    while((opt = getopt(argc, argv, "+u:m:x")) != -1)
     {
         switch(opt)
         {
@@ -176,6 +180,9 @@ int main(int argc, char **argv)
                 if ((mtime = atoi(optarg))==0)
                     curtime = 0;
                 else curtime = (int)time(NULL);
+                break;
+            case 'x':
+                xflag = 1;
                 break;
             case '?':
                 return -1;
