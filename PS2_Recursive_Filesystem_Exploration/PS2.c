@@ -28,6 +28,26 @@ int mtime = 0, curtime = 0;
 int uid = -2;
 char tmp[256];
 int xflag = 0;
+int loopCheck[2][1024];
+char loopCheckPath[1024][256];
+
+int isLoop(int dev, int ino, char *path)
+{
+    int i = 0;
+    for (i = 0; i < 1024; i++)
+    {
+        if (ino == loopCheck[1][i] && dev == loopCheck[0][i])
+            return i+1;
+        if (loopCheck[0][i] == 0 && loopCheck[1][i] == 0)
+        {
+            loopCheck[0][i] = dev;
+            loopCheck[1][i] = ino;
+            snprintf(loopCheckPath[i],256,"%s",path);
+            return 0;
+        }
+    }
+    return 0;
+}
 
 int isLink(struct stat buf)
 {
@@ -112,6 +132,7 @@ int lsDir(char *path)
     struct stat buf;
     DIR *tdirp, *odirp;
     char cPath[256];
+    int loopNum;
 
     tdirp = opendir(path);
     if (tdirp == NULL)
@@ -128,6 +149,13 @@ int lsDir(char *path)
         {
             case DT_DIR:
                 lstat(cPath,&buf);
+                if ((loopNum = isLoop(buf.st_dev,buf.st_ino,cPath+rootlen)))
+                {
+                    loopNum--;
+                    printf("Not following looped directory at %s with dev=%04o and ino=%lld, also seen as %s/mnt4\n",
+                        cPath+rootlen,buf.st_dev,buf.st_ino,loopCheckPath[loopNum]);
+                    continue;
+                }
                 if (xflag && buf.st_dev != vol)
                 {
                     printf("Found new device %04o for file %s, skipping file.\n",buf.st_dev,cPath+rootlen);
@@ -153,7 +181,7 @@ int lsDir(char *path)
                 if(lstat(cPath,&buf) < 0)
                 {
                     fprintf(stderr,"could not stat file %s: %s\n",cPath+rootlen,strerror(errno));
-                    continue;
+                    //continue;
                     return -1;
                 }
                 printStat(buf,cPath);
