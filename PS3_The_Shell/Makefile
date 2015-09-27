@@ -1,12 +1,12 @@
 all: shale
 
-shale: PS2.c
+shale: PS3.c
 	gcc PS3.c -o shale
 
 tex: *.tex
 	pdflatex PS3.tex
 
-debug:
+debug: PS3.c
 	gcc -g PS3.c -o shale
 
 clean:
