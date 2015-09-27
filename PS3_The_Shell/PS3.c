@@ -9,18 +9,23 @@
 #include <stdio.h>      // error reporting
 #include <stdlib.h>     // exit
 #include <string.h>     // strtok
+#include <sys/resource.h> // getrusage()
+#include <sys/wait.h>   // waitpid
 
 void eggzeck(char *command)
 {
-    
+    int i;
+    printf("closing files\n");
+    fcloseall();
     exit(0);    // kill the child process
 }
-
 
 int main(int argc, char **argv)
 {
     char command[256];
     int pid = 0;
+    int stat_loc;
+    struct rusage status;
     while(1)    // start shell
     {
         printf("$: ");
@@ -29,7 +34,7 @@ int main(int argc, char **argv)
         if (pid)
         {
             printf("i am a parent of %d. Waiting...\n",pid);
-            wait(1);
+            waitpid(pid,&stat_loc,0);
             continue;
         }
         eggzeck(command);
