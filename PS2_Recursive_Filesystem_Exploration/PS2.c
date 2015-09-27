@@ -171,19 +171,23 @@ int lsDir(char *path)
                 if (xflag && buf.st_dev != vol)
                 {
                     printf("Found new device %04o for file %s, skipping file.\n",buf.st_dev,cPath+rootlen);
-                    return -1;
                 }
                 printStat(buf,cPath,0);
                 if ((odirp = opendir(cPath)) == NULL)
                 {
                     fprintf(stderr,"could not open directory %s: %s\n",cPath+rootlen,strerror(errno));
                     continue;
-                    return -1;
+                }
+                if (closedir(odirp) == -1)
+                {
+                    fprintf(stderr,"could not close directory %s: %s\n",cPath+rootlen,strerror(errno));
+                    continue;
                 }
                 if ((lsDir(cPath)) == -1)
                 {
                     return -1;
                 }
+
                 break;
             case DT_REG:
             case DT_BLK:
@@ -193,11 +197,14 @@ int lsDir(char *path)
                 {
                     fprintf(stderr,"could not stat file %s: %s\n",cPath+rootlen,strerror(errno));
                     continue;
-                    return -1;
                 }
                 printStat(buf,cPath,0);
                 break;
         }
+    }
+    if (closedir(tdirp) == -1)
+    {
+        fprintf(stderr,"could not close directory %s: %s\n",cPath+rootlen,strerror(errno));
     }
     return 0; // return with no errors
 }
