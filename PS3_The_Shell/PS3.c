@@ -11,11 +11,12 @@
 #include <stdlib.h>     // exit
 #include <string.h>     // strtok
 #include <sys/resource.h> // getrusage()
+#include <sys/time.h>
 #include <sys/wait.h>   // waitpid
 #include <unistd.h>     // exec
 #include <sys/types.h>  // open
 #include <sys/stat.h>
-#include <fcntl.h>\
+#include <fcntl.h>
 
 void open_redirect(char *fstream, int io, int flag)
 {
@@ -44,7 +45,6 @@ void open_redirect(char *fstream, int io, int flag)
 
 int proc_redirect(char *rDirFd)
 {
-    printf("switching %c\n",rDirFd[0]);
     switch(rDirFd[0])
     {
         case '<':
@@ -103,6 +103,8 @@ int main(int argc, char **argv)
     int pid = 0;
     int stat_loc;
     int i = 0;
+    struct timeval start, end;
+    struct timespec st, endt;
     struct rusage status;
     while(1)    // start shell
     {
@@ -111,9 +113,12 @@ int main(int argc, char **argv)
         pid = fork();
         if (pid)
         {
-            printf("i am a parent of %d. Waiting...\n",pid);
+            getrusage(pid,&status);
+            start = status.ru_utime;
             waitpid(pid,&stat_loc,0);
-            printf("i am done waiting. Ready for next input\n");
+            getrusage(pid,&status);
+            end = status.ru_utime;
+            printf("consumed %lf user\n",((double)end.tv_sec-(double)start.tv_sec)/1000000.0);
             continue;
         }
         eggzeck(command);
