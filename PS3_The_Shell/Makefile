@@ -10,4 +10,4 @@ debug: PS3.c
 	gcc -g PS3.c -o shale
 
 clean:
-	ls -1 | grep -E -v 'PS3.c|Makefile|test.py|*.tex' | xargs rm -rf
+	ls -1 | grep -E -v 'PS3.c|Makefile|test.txt|*.tex' | xargs rm -rf

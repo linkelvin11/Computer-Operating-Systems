@@ -1,1 +1,263 @@
- 
+\documentclass[12pt]{article}
+\usepackage{pgfplots}
+\usepackage[margin=1in]{geometry}
+\usepackage{listings}
+\lstset{
+    frame=single,
+    breaklines=true,
+    basicstyle=\tiny,
+}
+\title{PS3 Shell}
+\author{Kelvin Lin}
+
+\begin{document}
+
+\maketitle
+
+\section{System Properties}
+For the purposes of this project, the code ran on a arch-linux machine.
+
+\section{Program Output and Testing}
+
+\begin{lstlisting}
+$: 
+
+child process ended with status 139
+consumed 0.000000 seconds of user time 
+consumed 0.000000 seconds of system time
+$: cat PS3.c >output.txt
+
+child process ended with status 0
+consumed 0.000000 seconds of user time 
+consumed 0.000000 seconds of system time
+$: diff PS3.c output.txt
+
+child process ended with status 0
+consumed 0.000000 seconds of user time 
+consumed 0.000000 seconds of system time
+$: cat PS3.c >>output.txt
+
+child process ended with status 0
+consumed 0.000000 seconds of user time 
+consumed 0.000000 seconds of system time
+$: cat PS3.c PS3.c >output2.txt
+
+child process ended with status 0
+consumed 0.000000 seconds of user time 
+consumed 0.000000 seconds of system time
+$: diff output.txt output2.txt
+
+child process ended with status 0
+consumed 0.000000 seconds of user time 
+consumed 0.000000 seconds of system time
+$: cat nonexistent.txt 2>test2.txt
+
+child process ended with status 256
+consumed 0.000000 seconds of user time 
+consumed 0.000000 seconds of system time
+$: cat test2.txt
+
+cat: nonexistent.txt: No such file or directory
+child process ended with status 0
+consumed 0.000000 seconds of user time 
+consumed 0.000000 seconds of system time
+$: cat nonexistent.txt 2>>test2.txt
+
+child process ended with status 256
+consumed 0.000000 seconds of user time 
+consumed 0.000000 seconds of system time
+$: cat test2.txt
+
+cat: nonexistent.txt: No such file or directory
+cat: nonexistent.txt: No such file or directory
+child process ended with status 0
+consumed 0.000000 seconds of user time 
+consumed 0.000000 seconds of system time
+$: cat: nonexistent.txt: No such file or directory
+
+child process ended with status 0
+consumed 0.000000 seconds of user time 
+consumed 0.000000 seconds of system time
+
+\end{lstlisting}
+
+\section{Source Code}
+\subsection{shale}
+\begin{lstlisting}
+/*
+    ECE 460 Computer Operating Systems
+    Problem Set 3
+    Recursive Interactive Shell
+
+    Author: Kelvin Lin
+*/
+
+#include <stdio.h>      // error reporting
+#include <errno.h>      // errno
+#include <stdlib.h>     // exit
+#include <string.h>     // strtok
+#include <sys/resource.h> // getrusage()
+#include <sys/time.h>
+#include <sys/wait.h>   // waitpid
+#include <unistd.h>     // exec
+#include <sys/types.h>  // open
+#include <sys/stat.h>
+#include <fcntl.h>
+
+void open_redirect(char *fstream, int io, int flag)
+{
+    // io = io file descriptor
+    // flag = 1 append
+    // flag = 0 truncate
+    int fd;
+    if (!io)
+        fd = open(fstream, O_RDONLY);
+    else if (flag)
+        fd = open(fstream, O_WRONLY|O_CREAT|O_APPEND,0666);
+    else
+        fd = open(fstream, O_WRONLY|O_CREAT|O_TRUNC,0666);
+    if (fd < 0)
+    {
+        fprintf(stderr,"could not open file %s: %s\n", fstream, strerror(errno));
+        exit(0);
+    }
+    else if (dup2(fd,io) < 0)
+    {
+        fprintf(stderr,"could not redirect fd %d to fd %d: %s\n",fd, io,strerror(errno));
+        exit(0);
+    }
+    return;
+}
+
+int proc_redirect(char *rDirFd)
+{
+    switch(rDirFd[0])
+    {
+        case '<':
+            printf("lel");
+            open_redirect(&rDirFd[1],0,0);
+            return 1;
+            break;
+        case '>':
+            if (rDirFd[1] == '>')
+                open_redirect(&rDirFd[2],1,1);
+            else
+                open_redirect(&rDirFd[1],1,0);
+            return 1;
+            break;
+        case '2':
+            if (rDirFd[1] == '>')
+            {
+                if (rDirFd[2] == '>')
+                    open_redirect(&rDirFd[3],2,1);
+                else
+                    open_redirect(&rDirFd[2],2,0);
+            }
+            return 1;
+            break;
+        default:
+            break;
+    }
+    return 0;
+}
+
+void eggzeck(char *command)
+{
+    int i = 1;
+    char** prog = malloc(256*sizeof(char));
+    prog[255] = NULL;
+    char delim[10] = " \t\n";
+    fcloseall();
+
+    for (prog[0] = strtok(command,delim); (prog[i] = strtok(NULL,delim)) != NULL && i < 255; i++);
+    for (i = 1; prog[i] != NULL; i++)
+    {
+        if (proc_redirect(prog[i]))
+            prog[i] = NULL;
+    }
+        
+    execvp(prog[0],prog);
+    free(prog);
+    exit(0);    // kill the child process
+}
+
+int main(int argc, char **argv)
+{
+    FILE * instream = stdin;
+    int printflag = 0;
+    if (argc > 1)
+    {
+        if (!(instream = fopen(argv[1],"r")))
+        {
+            printf("could not open input file\n");
+            exit(0);
+        }
+        printflag = 1;
+    }
+    size_t bsize = 256;
+    char command[bsize];
+    char *cmd = command;
+    int pid = 0;
+    int status;
+    int i = 0;
+    struct timeval start, end;
+    struct timespec st, endt;
+    struct rusage r_usage;
+    while(1)    // start shell
+    {
+        printf("$: ");
+        if (fgets(cmd,bsize,instream) == NULL)
+            exit(0);
+        if (printflag)
+            printf("%s\n",command);
+        pid = fork();
+        if (pid)
+        {
+            wait3(&status,0,&r_usage);
+            printf("child process ended with status %d\n",status);
+            printf("consumed %lf seconds of user time \nconsumed %lf seconds of system time\n",
+                    (double)(r_usage.ru_utime.tv_sec + (long double)r_usage.ru_utime.tv_usec/1000000),
+                    (double)(r_usage.ru_stime.tv_sec + (long double)r_usage.ru_stime.tv_usec/1000000));
+            continue;
+        }
+        eggzeck(command);
+    }
+    return 0;
+}
+
+\end{lstlisting}
+
+\subsection{Test Script}
+\begin{lstlisting}
+
+cat PS3.c >output.txt
+diff PS3.c output.txt
+cat PS3.c >>output.txt
+cat PS3.c PS3.c >output2.txt
+diff output.txt output2.txt
+cat nonexistent.txt 2>test2.txt
+cat test2.txt
+cat nonexistent.txt 2>>test2.txt
+cat test2.txt
+cat: nonexistent.txt: No such file or directory
+
+\end{lstlisting}
+\subsection{Makefile}
+
+\begin{lstlisting}
+all: shale
+
+shale: PS3.c
+    gcc PS3.c -o shale
+
+tex: *.tex
+    pdflatex PS3.tex
+
+debug: PS3.c
+    gcc -g PS3.c -o shale
+
+clean:
+    ls -1 | grep -E -v 'PS3.c|Makefile|test.txt|*.tex' | xargs rm -rf
+\end{lstlisting}
+
+\end{document}

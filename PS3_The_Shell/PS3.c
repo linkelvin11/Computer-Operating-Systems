@@ -62,10 +62,10 @@ int proc_redirect(char *rDirFd)
         case '2':
             if (rDirFd[1] == '>')
             {
-                if (rDirFd[1] == '>')
-                    open_redirect(&rDirFd[2],2,1);
+                if (rDirFd[2] == '>')
+                    open_redirect(&rDirFd[3],2,1);
                 else
-                    open_redirect(&rDirFd[1],2,0);
+                    open_redirect(&rDirFd[2],2,0);
             }
             return 1;
             break;
@@ -97,6 +97,17 @@ void eggzeck(char *command)
 
 int main(int argc, char **argv)
 {
+    FILE * instream = stdin;
+    int printflag = 0;
+    if (argc > 1)
+    {
+        if (!(instream = fopen(argv[1],"r")))
+        {
+            printf("could not open input file\n");
+            exit(0);
+        }
+        printflag = 1;
+    }
     size_t bsize = 256;
     char command[bsize];
     char *cmd = command;
@@ -109,17 +120,14 @@ int main(int argc, char **argv)
     while(1)    // start shell
     {
         printf("$: ");
-        getline(&cmd,&bsize,stdin);
+        if (fgets(cmd,bsize,instream) == NULL)
+            exit(0);
+        if (printflag)
+            printf("%s\n",command);
         pid = fork();
         if (pid)
         {
-            //getrusage(pid,&r_usage);
-            //start = r_usage.ru_utime;
-            //waitpid(pid,&status,0);
             wait3(&status,0,&r_usage);
-            //getrusage(pid,&r_usage);
-            //end = r_usage.ru_utime;
-            //printf("consumed %lf user\n",((double)end.tv_sec-(double)start.tv_sec)/1000000.0);
             printf("child process ended with status %d\n",status);
             printf("consumed %lf seconds of user time \nconsumed %lf seconds of system time\n",
                     (double)(r_usage.ru_utime.tv_sec + (long double)r_usage.ru_utime.tv_usec/1000000),

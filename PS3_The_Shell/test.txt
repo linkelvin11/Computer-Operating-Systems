@@ -1,0 +1,11 @@
+
+cat PS3.c >output.txt
+diff PS3.c output.txt
+cat PS3.c >>output.txt
+cat PS3.c PS3.c >output2.txt
+diff output.txt output2.txt
+cat nonexistent.txt 2>test2.txt
+cat test2.txt
+cat nonexistent.txt 2>>test2.txt
+cat test2.txt
+cat: nonexistent.txt: No such file or directory
