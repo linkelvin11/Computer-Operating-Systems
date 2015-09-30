@@ -101,11 +101,11 @@ int main(int argc, char **argv)
     char command[bsize];
     char *cmd = command;
     int pid = 0;
-    int stat_loc;
+    int status;
     int i = 0;
     struct timeval start, end;
     struct timespec st, endt;
-    struct rusage status;
+    struct rusage r_usage;
     while(1)    // start shell
     {
         printf("$: ");
@@ -113,12 +113,17 @@ int main(int argc, char **argv)
         pid = fork();
         if (pid)
         {
-            getrusage(pid,&status);
-            start = status.ru_utime;
-            waitpid(pid,&stat_loc,0);
-            getrusage(pid,&status);
-            end = status.ru_utime;
-            printf("consumed %lf user\n",((double)end.tv_sec-(double)start.tv_sec)/1000000.0);
+            //getrusage(pid,&r_usage);
+            //start = r_usage.ru_utime;
+            //waitpid(pid,&status,0);
+            wait3(&status,0,&r_usage);
+            //getrusage(pid,&r_usage);
+            //end = r_usage.ru_utime;
+            //printf("consumed %lf user\n",((double)end.tv_sec-(double)start.tv_sec)/1000000.0);
+            printf("child process ended with status %d\n",status);
+            printf("consumed %lf seconds of user time \nconsumed %lf seconds of system time\n",
+                    (double)(r_usage.ru_utime.tv_sec + (long double)r_usage.ru_utime.tv_usec/1000000),
+                    (double)(r_usage.ru_stime.tv_sec + (long double)r_usage.ru_stime.tv_usec/1000000));
             continue;
         }
         eggzeck(command);
