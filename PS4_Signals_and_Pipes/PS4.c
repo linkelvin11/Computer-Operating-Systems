@@ -9,8 +9,12 @@
 #include <stdio.h>      // error reporting
 #include <stdlib.h>     // exit
 #include <errno.h>      // errno
-#include <unistd.h>     // pipe
+#include <unistd.h>     // pipe, exec
 #include <fcntl.h>
+#include <string.h>
+
+#define PIPE_READ 0
+#define PIPE_WRITE 1
 
 int main(int argc, char **argv)
 {
@@ -21,12 +25,14 @@ int main(int argc, char **argv)
     int gfd[2];     // grep pipe
     int mfd[2];     // more pipe
     int more_read;
+    char pattern[256];
     while((opt = getopt(argc, argv, "+p:")) != -1)
     {
         switch(opt)
         {
             case 'p': // specify pattern
                 pflag = 1;
+                snprintf(pattern, 256,"%s",optarg);
                 break;
             case '?':
                 fprintf(stderr,"ERROR: The option -%c requires an argument\n",(char)optopt);
@@ -35,8 +41,11 @@ int main(int argc, char **argv)
                 break;
         }
     }
-
-    pipe(gfd);
+    printf("optind = %d; argv[optind] = %s\n", optind, (argv+optind)[0]);
+    if (pipe(gfd) == -1)
+    {
+        fprintf(stderr,"ERROR: could not open pipe: %s\n",strerror(errno));
+    }
     pipe(mfd);
 
     if (!pflag)
@@ -45,8 +54,7 @@ int main(int argc, char **argv)
         // pipe cat straight to more.
     }
     else
-    {
-        
+    {   
         if ((gpid = fork()) == -1)
         {
             fprintf(stderr,"ERROR: Could not fork into grep: %s\n",strerror(errno));
@@ -54,14 +62,16 @@ int main(int argc, char **argv)
         }
         if (!gpid)  // exec grep
         {
-            close(gfd[1]);
+            printf("execcing grep with pattern: /%s/\n",pattern);
+            close(gfd[PIPE_WRITE]);
+            close(mfd[PIPE_READ]);
             // dup redirect io
-            dup(gfd[0]);
-            dup2(mfd[1],1);
+            dup2(gfd[PIPE_READ],0);
+            dup2(mfd[PIPE_WRITE],1);
             // exec
-            exit(0);
+            execlp("grep", "grep", "-e", pattern, NULL);
+            exit(1);
         }
-        close(gfd[0]);
     }
     
 
@@ -69,31 +79,39 @@ int main(int argc, char **argv)
     {
         fprintf(stderr,"ERROR: Could not fork into more: %s\n",strerror(errno));
         exit(1);
+        
     }
-    if (!mpid) // exec more
+    else if (!mpid) // exec more
     {
+        close(gfd[PIPE_WRITE]);
         if (!pflag)
         {
-            close(gfd[1]);
-            close(mfd[0]);
-            close(mfd[1]);
-            more_read = gfd[0];
+            close(mfd[PIPE_READ]);
+            close(mfd[PIPE_WRITE]);
+            more_read = gfd[PIPE_READ];
         }
         else
         {
-            close(mfd[1]);
-            more_read = mfd[0];
+            close(gfd[PIPE_READ]);
+            close(mfd[PIPE_WRITE]);
+            more_read = mfd[PIPE_READ];
         }
         // dup redirect io
-        dup(more_read);
+        dup2(more_read,0);
         // exec
-        exit(0);
+        printf("execcing more\n");
+        execlp("pg", "pg", NULL);
+        exit(1);
     }
-    close(mfd[0]);
+    close(gfd[PIPE_READ]);
+    close(mfd[PIPE_READ]);
 
     // dup redirect io
-    dup2(gfd[1],1);
+    dup2(gfd[PIPE_WRITE],1);
     // exec cat
-    
-    return 0;
+
+    argv[optind - 1] = "cat";
+    execvp("cat", argv+optind-1);
+
+    exit(0);
 }
