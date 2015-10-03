@@ -16,6 +16,32 @@
 #define PIPE_READ 0
 #define PIPE_WRITE 1
 
+void err_exit()
+{
+    fcloseall();
+    exit(1);
+}
+
+void err_dup(int ofd, int nfd)  // dup with error reporting
+{
+    if (dup2(ofd,nfd) == -1)
+    {
+        fprintf(stderr,"ERROR: could not redirect fd %d to %d: %s\n",ofd,nfd,strerror(errno));
+        err_exit();
+    }
+    return;
+}
+
+void err_pipe(int fds[2]) // pipe with error reporting
+{
+    if (pipe(fds) == -1)
+    {
+        perror("could not open pipe\n");
+        err_exit();
+    }
+    return;
+}
+
 int main(int argc, char **argv)
 {
     int pflag = 0;
@@ -42,11 +68,8 @@ int main(int argc, char **argv)
         }
     }
     printf("optind = %d; argv[optind] = %s\n", optind, (argv+optind)[0]);
-    if (pipe(gfd) == -1)
-    {
-        fprintf(stderr,"ERROR: could not open pipe: %s\n",strerror(errno));
-    }
-    pipe(mfd);
+    err_pipe(gfd);
+    err_pipe(mfd);
 
     if (!pflag)
     {
@@ -58,7 +81,7 @@ int main(int argc, char **argv)
         if ((gpid = fork()) == -1)
         {
             fprintf(stderr,"ERROR: Could not fork into grep: %s\n",strerror(errno));
-            exit(1);
+            err_exit();
         }
         if (!gpid)  // exec grep
         {
@@ -66,11 +89,11 @@ int main(int argc, char **argv)
             close(gfd[PIPE_WRITE]);
             close(mfd[PIPE_READ]);
             // dup redirect io
-            dup2(gfd[PIPE_READ],0);
-            dup2(mfd[PIPE_WRITE],1);
+            err_dup(gfd[PIPE_READ],0);
+            err_dup(mfd[PIPE_WRITE],1);
             // exec
             execlp("grep", "grep", "-e", pattern, NULL);
-            exit(1);
+            err_exit();
         }
     }
     
@@ -78,7 +101,7 @@ int main(int argc, char **argv)
     if ((mpid = fork()) == -1)
     {
         fprintf(stderr,"ERROR: Could not fork into more: %s\n",strerror(errno));
-        exit(1);
+        err_exit();
         
     }
     else if (!mpid) // exec more
@@ -97,17 +120,17 @@ int main(int argc, char **argv)
             more_read = mfd[PIPE_READ];
         }
         // dup redirect io
-        dup2(more_read,0);
+        err_dup(more_read,0);
         // exec
         printf("execcing more\n");
         execlp("pg", "pg", NULL);
-        exit(1);
+        err_exit();
     }
     close(gfd[PIPE_READ]);
     close(mfd[PIPE_READ]);
 
     // dup redirect io
-    dup2(gfd[PIPE_WRITE],1);
+    err_dup(gfd[PIPE_WRITE],1);
     // exec cat
 
     argv[optind - 1] = "cat";
