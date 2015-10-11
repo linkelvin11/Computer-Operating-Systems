@@ -16,6 +16,36 @@
 #define PIPE_READ 0
 #define PIPE_WRITE 1
 
+int readwrite(int fin, int fout, void *buf, size_t buffersize)
+{
+    int rd = 0, wr = 0, wlen = 0;
+    while((rd = read(fin,buf,buffersize)) != 0)
+    {
+        if (rd < 0)
+        {
+            perror("ERROR: Unable to read input");
+            free(buf);
+            return -1;
+        }
+
+        // Check for partial writes & write to file
+        wlen = 0;
+        do
+        {
+            wr = write(fout,buf+wlen,rd-wlen);
+            wlen = wlen + wr;
+            if (wr < 0)
+            {
+                perror("ERROR: Unable to write to output");
+                free(buf);
+                return -1;
+            }   
+        }
+        while(wlen < rd);
+    }
+    return 0; // exit with no error
+}
+
 void err_exit()
 {
     fcloseall();
@@ -92,6 +122,7 @@ int main(int argc, char **argv)
             err_dup(mfd[PIPE_WRITE],1);
 
             execlp("grep", "grep", "-e", pattern, NULL);
+            perror("ERROR: grep failed");
             err_exit();
         }
     }
@@ -121,18 +152,48 @@ int main(int argc, char **argv)
 
         err_dup(more_read,0);
 
-        execlp("pg", "pg", NULL);
+        execlp("less", "less", NULL);
+        perror("ERROR: more failed");
         err_exit();
     }
     close(gfd[PIPE_READ]);
     close(mfd[PIPE_READ]);
+    close(mfd[PIPE_WRITE]);
 
     // dup redirect io
     err_dup(gfd[PIPE_WRITE],1);
     // exec cat
 
-    argv[optind - 1] = "cat";
-    execvp("cat", argv+optind-1);
-
+    fprintf(stderr,"WARNING: catgrepmore assumes all arguments are filenames. Proceed with caution.\n");
+    
+    int i;
+    int fh;
+    int buffersize = 1024;
+    char* buf;
+    printf("if\n");
+    if ((buf = malloc(buffersize)) == 0)
+    {
+        fprintf(stderr, 
+                "ERROR: Could not allocate %d bytes of memory to buffer with malloc: %s\n", 
+                buffersize, strerror(errno));
+        exit(1);
+    }
+    printf("for\n");
+    for (i = optind; i < argc; i++)
+    {
+        printf("reading %s\n",argv[i]);
+        if((fh = open(argv[i],O_RDONLY)) == -1)
+        {
+            fprintf(stderr,"ERROR: could not open %s for reading: %s", argv[i], strerror(errno));
+            exit(1);
+        }
+        readwrite(fh,1,buf,buffersize);
+        close(fh);
+    }
+    //execvp("cat", argv+optind-1);
+    close(gfd[PIPE_WRITE]);
+    int stat1,stat2;
+    waitpid(gpid, &stat1, 0);
+    waitpid(mpid, &stat2, 0);
     exit(0);
 }
