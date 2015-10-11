@@ -74,7 +74,7 @@ int main(int argc, char **argv)
     if (!pflag)
     {
         fprintf(stderr,"WARNING: pattern not specified. Piping cat directly to more.\n");
-        // pipe cat straight to more.
+        fprintf(stderr,"usage:\n\t./catgrepmore -p pattern infile1 [...infile2...]\n\n");
     }
     else
     {   
@@ -85,13 +85,12 @@ int main(int argc, char **argv)
         }
         if (!gpid)  // exec grep
         {
-            printf("execcing grep with pattern: /%s/\n",pattern);
             close(gfd[PIPE_WRITE]);
             close(mfd[PIPE_READ]);
-            // dup redirect io
+
             err_dup(gfd[PIPE_READ],0);
             err_dup(mfd[PIPE_WRITE],1);
-            // exec
+
             execlp("grep", "grep", "-e", pattern, NULL);
             err_exit();
         }
@@ -119,10 +118,9 @@ int main(int argc, char **argv)
             close(mfd[PIPE_WRITE]);
             more_read = mfd[PIPE_READ];
         }
-        // dup redirect io
+
         err_dup(more_read,0);
-        // exec
-        printf("execcing more\n");
+
         execlp("pg", "pg", NULL);
         err_exit();
     }
