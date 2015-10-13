@@ -34,8 +34,8 @@ int readwrite(int fin, int fout, void *buf, size_t buffersize)
             return -1;
         }
 
-        wlen = 0;
-        wr = write(fout,buf+wlen,rd-wlen);
+        // Check for partial writes & write to file
+        wr = write(fout,buf,rd);
         if (wr < 0)
         {
             perror("ERROR: Unable to write to output");
