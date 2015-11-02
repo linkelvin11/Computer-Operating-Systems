@@ -1,3 +1,22 @@
+\documentclass[12pt]{article}
+\usepackage{pgfplots}
+\usepackage[margin=1in]{geometry}
+\usepackage{listings}
+\lstset{
+    frame=single,
+    breaklines=true,
+    basicstyle=\tiny,
+}
+\title{PS4 catgrepmore}
+\author{Kelvin Lin}
+
+\begin{document}
+
+\maketitle
+
+\section{Source Code}
+\subsection{memory map}
+\begin{lstlisting}
 /*
     Kelvin Lin
     ECE 460 Computer Operating Systems
@@ -264,3 +283,29 @@ int main(int argc, char** argv){
         err_exit("could not get an opt");
     return 0;
 }
+\end{lstlisting}
+
+\subsection{Makefile}
+
+\begin{lstlisting}
+all: testprog
+
+testfile:
+    head -c 8195 </dev/urandom > testfile.txt
+    head -c 10 </dev/urandom > smallfile.txt
+
+testprog: PS5.c testfile
+    gcc PS5.c -o testprog.exe
+
+tex: *.tex
+    pdflatex PS5.tex
+
+debug: PS5.c
+    gcc -g PS5.c -o testprog.exe
+
+clean:
+    rm *.o
+    rm *.exe
+\end{lstlisting}
+
+\end{document}

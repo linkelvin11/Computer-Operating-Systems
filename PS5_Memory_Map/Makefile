@@ -1,9 +1,11 @@
 all: testprog
 
-testprog: PS5.c testfile.txt
-	gcc PS5.c -o testprog.exe
+testfile:
 	head -c 8195 </dev/urandom > testfile.txt
 	head -c 10 </dev/urandom > smallfile.txt
+
+testprog: PS5.c testfile
+	gcc PS5.c -o testprog.exe
 
 tex: *.tex
 	pdflatex PS5.tex
