@@ -20,7 +20,9 @@
 // mmap
 #include <sys/mman.h>
 
+// testfiles are generated in the makefile
 char *testfile = "testfile.txt";
+char *smallfile = "smallfile.txt";
 
 void err_exit(char *error){
     fprintf(stderr,"ERROR: %s: %s\n",error,strerror(errno));
@@ -82,21 +84,21 @@ void problem_a(){
     size_t length;
     struct stat stat_struct;
 
-    fprintf(stderr,"Opening file for reading\n");
+    fprintf(stdout,"Opening file for reading\n");
     int fd = err_open(testfile, O_RDONLY, 0);
 
     err_fstat(fd,&stat_struct);
     length = stat_struct.st_size;
-    fprintf(stderr,"fstat reports the test file size to be %zd\n",length);
+    fprintf(stdout,"fstat reports the test file size to be %zd\n",length);
 
     mapped = err_mmap(NULL, length, PROT_READ, MAP_SHARED, fd, 0);
-    fprintf(stderr,"about to write to mmap\n");
+    fprintf(stdout,"about to write to mmap\n");
     sprintf(mapped,"generate signal");
 
     return;
 }
 
-void problem_b(int shared){
+void problem_bc(int private){
     void* mapped;
     int fd;
     size_t length;
@@ -107,36 +109,141 @@ void problem_b(int shared){
 
     char* writestring = "write to mapped";
 
-    fprintf(stderr,"Opening file\n");
+    fprintf(stdout,"Opening file\n");
     fd = err_open(testfile, O_RDWR, 0644);
 
     err_fstat(fd,&stat_struct);
     length = stat_struct.st_size;
-    fprintf(stderr,"fstat reports the test file size to be %zd bytes long\n",length);
+    fprintf(stdout,"fstat reports the test file size to be %zd bytes long\n",length);
 
-    if (shared)
+    if (!private){ // problem b
+        fprintf(stdout,"about to MAP_SHARED\n");
         mapped = err_mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, offset);
-    else
+    }
+    else{ // problem c
+        fprintf(stdout,"about to MAP_PRIVATE\n");
         mapped = err_mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, offset);
+    }
 
-    fprintf(stderr,"writing to mapped: %s\n",writestring);
+    fprintf(stdout,"writing to mapped: %s\n",writestring);
     sprintf(mapped,"%s",writestring);
 
     err_lseek(fd,offset,SEEK_SET);
-    err_read(fd,buf,buffersize);
+    err_read(fd,buf,strlen(writestring));
 
-    fprintf(stderr,"read from mapped: %s\n", buf);
+    fprintf(stdout,"read from mapped: %s\n", buf);
+
+    if (strcmp(buf,writestring) == 0)
+        fprintf(stdout,"was able to read from mapped\n");
+    else
+        fprintf(stdout,"was unable to read from mapped\n");
+
+}
+
+void problem_de(int expand){
+    char* mapped;
+    int fd;
+    size_t length;
+    struct stat stat_struct;
+    off_t offset = 0;
+    int buffersize = 128;
+    char* buf = malloc(buffersize*sizeof(char));
+
+    fprintf(stdout,"Opening file\n");
+    fd = err_open(testfile, O_RDWR, 0644);
+
+    err_fstat(fd,&stat_struct);
+    length = stat_struct.st_size;
+    fprintf(stdout,"fstat reports the test file size to be %zd bytes long\n",length);
+
+    mapped = err_mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, offset);
+
+    fprintf(stdout,"about to write past end of mmap\n");
+    sprintf(mapped + length + 1,"w");
+    fprintf(stdout,"wrote: \"w\"\n");
+
+    size_t prev_length = length;
+    err_fstat(fd,&stat_struct);
+    length = stat_struct.st_size;
+    if (length != prev_length)
+        fprintf(stdout,"fstat reports the new test file size to be %zd bytes long\n",length);
+    else
+        fprintf(stdout,"the file size did not change\n");
+
+    if (expand){ // problem e
+        fprintf(stdout,"increasing file size\n");
+
+        offset = 2;
+        err_lseek(fd,offset,SEEK_END);
+        err_write(fd,"a",1);
+        fprintf(stdout,"wrote: \"a\"\n");
+
+        err_fstat(fd,&stat_struct);
+        length = stat_struct.st_size;
+        fprintf(stdout,"fstat reports the test file size to be %zd bytes long\n",length);
+
+        // the hole is not overwritten
+        err_lseek(fd,prev_length,SEEK_SET);
+        err_read(fd,buf,buffersize);
+        fprintf(stdout,"read from increased file: %c%c\n",mapped[prev_length+1],mapped[prev_length+2]);
+
+    }
+
+}
+
+void problem_f(){
+    char* mapped;
+    int fd;
+    size_t length;
+    struct stat stat_struct;
+    off_t offset = 0;
+    int buffersize = 128;
+    char* buf = malloc(buffersize*sizeof(char));
+
+    fprintf(stdout,"Opening file\n");
+    fd = err_open(smallfile, O_RDWR, 0644);
+
+    err_fstat(fd,&stat_struct);
+    length = stat_struct.st_size;
+    fprintf(stdout,"fstat reports the test file size to be %zd bytes long\n",length);
+
+    mapped = err_mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_SHARED, fd, offset);
+
+    fprintf(stdout,"accessing first page\n");
+    char page_one = mapped[4000];
+    fprintf(stdout,"access successful\n");
+    fprintf(stdout,"accessing second page\n");
+    char page_two = mapped[4096]; // bus error
 
 }
 
 int main(int argc, char** argv){
-    // generate test file
-    // printf("generating test file\n");
-    // err_open(testfile, O_CREAT|O_WRONLY|O_TRUNC);
-    // problem_a();
-    problem_b(1);
+    char opt;
 
-
-
+    if ((opt = getopt(argc, argv, "+abcdef")) != -1){
+        switch(opt){
+            case 'a':
+                problem_a();
+                break;
+            case 'b':
+                problem_bc(0);
+                break;
+            case 'c':
+                problem_bc(1);
+                break;
+            case 'd':
+                problem_de(0);
+                break;
+            case 'e':
+                problem_de(1);
+                break;
+            case 'f':
+                problem_f();
+            default:
+                err_exit("could not get an opt");
+        }
+    }
+    else
+        err_exit("could not get an opt");
     return 0;
 }
