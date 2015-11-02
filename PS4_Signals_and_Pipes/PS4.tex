@@ -15,7 +15,7 @@
 \maketitle
 
 \section{Source Code}
-\subsection{shale}
+\subsection{catgrepmore}
 \begin{lstlisting}
 /*
     ECE 460 Computer Operating Systems
@@ -54,20 +54,14 @@ int readwrite(int fin, int fout, void *buf, size_t buffersize)
         }
 
         // Check for partial writes & write to file
-        wlen = 0;
-        do
+        wr = write(fout,buf,rd);
+        if (wr < 0)
         {
-            wr = write(fout,buf+wlen,rd-wlen);
-            wlen = wlen + wr;
-            tbytes = tbytes + wr; // update total bytes written
-            if (wr < 0)
-            {
-                perror("ERROR: Unable to write to output");
-                free(buf);
-                return -1;
-            }   
+            perror("ERROR: Unable to write to output");
+            free(buf);
+            return -1;
         }
-        while(wlen < rd);
+        tbytes = tbytes + wr;
     }
     return 0; // exit with no error
 }
@@ -122,13 +116,17 @@ int main(int argc, char **argv)
     int gpid = 0;   // grep pid
     int mpid = 0;   // more pid
     char opt;
-    int gfd[2];     // grep pipe
-    int mfd[2];     // more pipe
+
     int more_read;
     char pattern[256];
 
-    signal(SIGINT,sigint_handler);
+    int i;
+    int fh;
+    int buffersize = 1024;
+    char* buf;
 
+    signal(SIGINT,sigint_handler);
+    signal(SIGPIPE,SIG_IGN);
     while((opt = getopt(argc, argv, "+mp:")) != -1)
     {
         switch(opt)
@@ -147,84 +145,84 @@ int main(int argc, char **argv)
                 break;
         }
     }
-    printf("optind = %d; argv[optind] = %s\n", optind, (argv+optind)[0]);
-    err_pipe(gfd);
-    err_pipe(mfd);
 
-    if (pflag)
-    {  
-        if ((gpid = fork()) == -1)
-        {
-            fprintf(stderr,"ERROR: Could not fork into grep: %s\n",strerror(errno));
-            err_exit();
-        }
-        if (!gpid)  // exec grep
-        {
-            err_dup(gfd[PIPE_READ],0);
-            if (mflag)
-                err_dup(mfd[PIPE_WRITE],1);
-
-            err_close(gfd[PIPE_WRITE]);
-            err_close(gfd[PIPE_READ]);
-            err_close(mfd[PIPE_WRITE]);
-            err_close(mfd[PIPE_READ]);
-
-            execlp("grep", "grep", "-e", pattern, NULL);
-            perror("ERROR: grep failed");
-            err_exit();
-        }
-    }
-    
-    if (mflag)
-    {
-        if ((mpid = fork()) == -1)
-        {
-            fprintf(stderr,"ERROR: Could not fork into more: %s\n",strerror(errno));
-            err_exit();
-            
-        }
-        else if (!mpid) // exec more
-        {
-            if (!pflag)
-            {
-                more_read = gfd[PIPE_READ];
-            }
-            else
-            {
-                more_read = mfd[PIPE_READ];
-            }
-
-            err_dup(more_read,0);
-            err_close(gfd[PIPE_WRITE]);
-            err_close(gfd[PIPE_READ]);
-            err_close(mfd[PIPE_WRITE]);
-            err_close(mfd[PIPE_READ]);
-
-            execlp("less", "less", (char *) NULL);
-            perror("ERROR: more failed");
-            err_exit();
-        }
-    }
-
-    err_dup(gfd[PIPE_WRITE],1);
-    err_close(gfd[PIPE_READ]);
-    err_close(mfd[PIPE_READ]);
-    err_close(mfd[PIPE_WRITE]);
-    
-    // start writing files
-    int i;
-    int fh;
-    int buffersize = 1024;
-    char* buf;
-    if ((buf = malloc(buffersize)) == 0)
-    {
-        fprintf(stderr, 
-                "ERROR: Could not allocate %d bytes of memory to buffer with malloc: %s\n", 
-                buffersize, strerror(errno));
-        exit(1);
-    }
     for (i = optind; i < argc; i++)
     {
+        int gfd[2];     // grep pipe
+        int mfd[2];     // more pipe
+        err_pipe(gfd);
+        err_pipe(mfd);
+
+        if (pflag)
+        {  
+            if ((gpid = fork()) == -1)
+            {
+                fprintf(stderr,"ERROR: Could not fork into grep: %s\n",strerror(errno));
+                err_exit();
+            }
+            if (!gpid)  // exec grep
+            {
+                err_dup(gfd[PIPE_READ],0);
+                if (mflag)
+                    err_dup(mfd[PIPE_WRITE],1);
+
+                err_close(gfd[PIPE_WRITE]);
+                err_close(gfd[PIPE_READ]);
+                err_close(mfd[PIPE_WRITE]);
+                err_close(mfd[PIPE_READ]);
+
+                execlp("grep", "grep", "-e", pattern, (char *) NULL);
+                perror("ERROR: grep failed");
+                err_exit();
+            }
+        }
+        
+        if (mflag)
+        {
+            if ((mpid = fork()) == -1)
+            {
+                fprintf(stderr,"ERROR: Could not fork into more: %s\n",strerror(errno));
+                err_exit();
+                
+            }
+            else if (!mpid) // exec more
+            {
+                if (!pflag)
+                {
+                    more_read = gfd[PIPE_READ];
+                }
+                else
+                {
+                    more_read = mfd[PIPE_READ];
+                }
+
+                err_dup(more_read,0);
+                err_close(gfd[PIPE_WRITE]);
+                err_close(gfd[PIPE_READ]);
+                err_close(mfd[PIPE_WRITE]);
+                err_close(mfd[PIPE_READ]);
+
+                execlp("less", "less", (char *) NULL);
+                perror("ERROR: more failed");
+                err_exit();
+            }
+        }
+
+        err_dup(gfd[PIPE_WRITE],1);
+        err_close(gfd[PIPE_READ]);
+        err_close(mfd[PIPE_READ]);
+        err_close(mfd[PIPE_WRITE]);
+        err_close(gfd[PIPE_WRITE]);
+        // start writing files
+        
+        if ((buf = malloc(buffersize)) == 0)
+        {
+            fprintf(stderr, 
+                    "ERROR: Could not allocate %d bytes of memory to buffer with malloc: %s\n", 
+                    buffersize, strerror(errno));
+            exit(1);
+        }
+    
         printf("reading %s\n",argv[i]);
         if((fh = open(argv[i],O_RDONLY)) == -1)
         {
@@ -232,13 +230,11 @@ int main(int argc, char **argv)
             exit(1);
         }
         tfiles++;
-        readwrite(fh,gfd[PIPE_WRITE],buf,buffersize);
+        readwrite(fh,1,buf,buffersize);
         err_close(fh);
+        if (pflag) wait(0);
+        if (mflag) wait(0);
     }
-    err_close(gfd[PIPE_WRITE]);
-
-    wait(0);
-    wait(0);
     exit(0);
 }
 
