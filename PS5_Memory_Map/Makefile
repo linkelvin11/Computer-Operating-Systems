@@ -14,5 +14,4 @@ debug: PS5.c
 	gcc -g PS5.c -o testprog.exe
 
 clean:
-	rm *.o
-	rm *.exe
+	rm -f *.exe *.o *.stackdump *~
