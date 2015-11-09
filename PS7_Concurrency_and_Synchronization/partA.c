@@ -1,16 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <signal.h>
+#include "sem.h"
+
 
 #define NUMPROC 64
 
-
+struct sem *s;
 
 int main(int argc, char** argv) {
 	int procs[NUMPROC];
 
 	int *mapped;
-	mapped = mmap(0,(10* sizeof (int)),PROT_READ|PROT_WRITE,MAP_SHARED|MAP_ANONYMOUS,-1,0);
+	s = mmap(0,(sizeof (struct sem)),PROT_READ|PROT_WRITE,MAP_SHARED|MAP_ANONYMOUS,-1,0);
+	sem_init(s, 1);
+	mapped = mmap(0,(sizeof (int)),PROT_READ|PROT_WRITE,MAP_SHARED|MAP_ANONYMOUS,-1,0);
 	mapped[0] = 0;
 
 	int curr_proc;
@@ -24,19 +29,31 @@ int main(int argc, char** argv) {
 			perror("couldn't fork\n");
 			exit(1);
 		}
+		my_procnum = i;
 	}
 
 	int initial;
 	int end;
 	int j;
 	for (j = 0; j < 1e6; j++){
+		sem_wait(s);
+		fprintf(stderr,"  locked for process %d\n",my_procnum);
 		initial = mapped[0];
 		end = ++mapped[0];
 		if (end != initial+1){
 			fprintf(stderr,"size mismatch! process %d started with %d and ended with %d\n",i,initial,end);
+		    for(j = 0; j < NUMPROC; j++) {
+		        if (j != my_procnum && s->pids[j]) {
+		            kill(s->pids[j], SIGINT);
+		        }
+    		}
 			exit (1);
 		}
-
+		else{
+			fprintf(stderr,"process %d started with %d and ended with %d\n",my_procnum,initial,end);
+		}
+		fprintf(stderr,"unlocked for process %d\n",my_procnum);
+		sem_inc(s);
 	}
 	return 0;
 }
