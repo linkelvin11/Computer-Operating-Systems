@@ -1,8 +1,5 @@
+#include "constants.h"
 #include "sem.h"
-#include <stdlib.h>
-#include <signal.h>
-#include <unistd.h>
-#include <stdio.h>
 
 int tas(volatile char *lock);
 

@@ -1,7 +1,8 @@
 #ifndef SEM_H_
 #define SEM_H_
 
-#define NUMPROC 64
+#include "constants.h"
+
 int my_procnum;
 
 struct sem {

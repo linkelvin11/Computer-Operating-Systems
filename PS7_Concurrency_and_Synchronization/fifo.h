@@ -1,6 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-
+#include "constants.h"
 #include "sem.h"
 
 #define MYFIFO_BUFSIZ 4096
