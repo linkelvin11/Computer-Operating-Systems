@@ -71,6 +71,7 @@ void sem_inc(struct sem *s) {
 	for (i = 0; i < NUMPROC; i++){
 		if (s->pstatus[i]){
 			kill(s->pids[i], SIGUSR1);
+			break;
 		}
 	}
 	s->lock = 0;

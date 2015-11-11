@@ -35,13 +35,11 @@ void kill_children(int parent_id){
 }
 
 void parent_proc(){
-	unsigned long lastread[NUMPROC];
+	unsigned long lastread[NUMPROC] = {0};
 	unsigned long rd;
-
-
 	int index;
-	for (index = 0; index < NUMPROC; index++)
-		lastread[index] = 0;
+
+	// start reading
 	int i;
 	for(i = 0; i < (NUMPROC-1) * (NUMLOOP); i++){
 		rd = fifo_rd(f);
@@ -53,6 +51,7 @@ void parent_proc(){
 			err_exit("fifo out of order. exiting...");
 		}
 		lastread[index] = rd;
+		// fprintf(stderr,"%08lu\n",rd);
 	}
 	fprintf(stderr,"done\n");
 }

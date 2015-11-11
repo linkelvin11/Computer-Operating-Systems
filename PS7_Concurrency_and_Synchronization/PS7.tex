@@ -1,0 +1,387 @@
+\documentclass[12pt]{article}
+\usepackage{pgfplots}
+\usepackage[margin=1in]{geometry}
+\usepackage{listings}
+\lstset{
+    frame=single,
+    breaklines=true,
+    basicstyle=\tiny,
+}
+\title{PS7 Concurrency and Synchronization}
+\author{Kelvin Lin}
+
+\begin{document}
+
+\maketitle
+
+\section{Source Code}
+
+\subsection{constants}
+
+\begin{lstlisting}
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <signal.h>
+#include <errno.h>
+#include <string.h>
+
+#define NUMPROC 64
+#define NUMLOOP 1e5
+#define MYFIFO_BUFSIZ 4096
+\end{lstlisting}
+
+\subsection{semaphore}
+
+    \subsubsection{sem.h}
+    \begin{lstlisting}
+#ifndef SEM_H_
+#define SEM_H_
+
+#include "constants.h"
+
+int my_procnum;
+
+struct sem {
+    char lock;
+    int count;
+    int pstatus[NUMPROC];
+    int pids[NUMPROC];
+};
+
+
+void sem_init(struct sem *s, int count);
+
+int sem_try(struct sem *s);
+
+void sem_wait(struct sem *s);
+
+void sem_inc(struct sem *s);
+
+#endif
+    \end{lstlisting}
+
+    \subsubsection{sem.c}
+    \begin{lstlisting}
+#include "constants.h"
+#include "sem.h"
+
+int tas(volatile char *lock);
+
+void sem_init(struct sem *s, int count) {
+    s->count = count;
+    s->lock = 0; // unlock
+
+    int i; // zero pstatus and pids
+    for (i = 0; i < NUMPROC; i++) {
+        s->pstatus[i] = 0;
+        s->pids[i] = 0;
+    }
+}
+
+int sem_try(struct sem *s) {
+    int ret;
+    while (tas(&s->lock));
+
+    if (s->count > 0){
+        s->count--;
+        ret = 1;
+    }
+    else
+        ret = 0;
+    s->lock = 0;
+    return ret;
+
+}
+
+void sigusr1_handler(){
+    return; // do nothing; wake from sleep
+}
+
+void sem_wait(struct sem *s) {
+
+    s->pids[my_procnum] = getpid();
+
+    while (1) {
+        while (tas(&s->lock));
+
+        // block all signals except sigint and sigusr1
+        if (signal(SIGUSR1,sigusr1_handler) == SIG_ERR)
+            perror("Failed to set signal handler");
+        sigset_t mask;
+        sigfillset(&mask);
+        sigdelset(&mask, SIGUSR1);
+        sigdelset(&mask, SIGINT);
+
+        if (s->count > 0) {
+            s->count--;
+            s->pstatus[my_procnum] = 0;
+            s->lock = 0;
+            return;
+        }
+        else {
+            s->lock = 0;
+            s->pstatus[my_procnum] = 1;
+            sigsuspend(&mask);
+        }
+    }
+}
+
+void sem_inc(struct sem *s) {
+    while (tas(&s->lock));
+
+    s->count++;
+
+    int i;
+    for (i = 0; i < NUMPROC; i++){
+        if (s->pstatus[i]){
+            kill(s->pids[i], SIGUSR1);
+            break;
+        }
+    }
+    s->lock = 0;
+}
+    \end{lstlisting}
+
+\subsection{fifo}
+
+    \subsubsection{fifo.h}
+    \begin{lstlisting}
+#include "constants.h"
+#include "sem.h"
+
+struct fifo {
+    struct sem rd_sem; // read
+    struct sem wr_sem; // write
+    struct sem ac_sem; // access
+
+    unsigned long buf[MYFIFO_BUFSIZ];
+    int head;
+    int tail;
+};
+
+void fifo_init (struct fifo *f);
+
+void fifo_wr (struct fifo *f, unsigned long d);
+
+unsigned long fifo_rd (struct fifo *f);
+    \end{lstlisting}
+
+    \subsubsection{fifo.c}
+    \begin{lstlisting}
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "constants.h"
+#include "sem.h"
+#include "fifo.h"
+
+void fifo_init (struct fifo *f){
+
+    sem_init(&f->wr_sem,MYFIFO_BUFSIZ);
+    sem_init(&f->rd_sem,0);
+    sem_init(&f->ac_sem,1);
+
+    f->head = 0;
+    f->tail = 0;
+
+    return;
+}
+
+void fifo_wr (struct fifo *f, unsigned long d){
+    sem_wait(&f->wr_sem);
+    sem_wait(&f->ac_sem);
+
+    f->buf[f->head++] = d;
+    f->head %= MYFIFO_BUFSIZ;
+
+    sem_inc(&f->rd_sem);
+    sem_inc(&f->ac_sem);
+}
+
+unsigned long fifo_rd (struct fifo *f){
+    unsigned long ret;
+
+    sem_wait(&f->rd_sem);
+    sem_wait(&f->ac_sem);
+
+    ret = f->buf[f->tail++];
+    f->tail %= MYFIFO_BUFSIZ;
+
+    sem_inc(&f->wr_sem);
+    sem_inc(&f->ac_sem);
+
+    return ret;
+}
+    \end{lstlisting}
+
+\subsection{acid test}
+
+\begin{lstlisting}
+#include "constants.h"
+#include "sem.h"
+#include "fifo.h"
+
+struct fifo *f;
+int* child_rem;
+
+void err_exit(char* buf){
+    fprintf(stdout,"ERROR: %s: %s\n",buf,strerror(errno));
+    exit(1);
+}
+
+int err_fork(){
+    int frk;
+    if ((frk = fork()) == -1)
+        err_exit("couldn't fork");
+
+}
+
+void *err_mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset){
+    void *map;
+    if ((map = mmap(addr, length, prot, flags, fd, offset)) == MAP_FAILED){
+        err_exit("could not map file");
+    }
+    return map;
+}
+
+void kill_children(int parent_id){
+    int i;
+    for(i = 0; i < NUMPROC; i++) {
+        if (i != parent_id && f->ac_sem.pids[i]) {
+            kill(f->ac_sem.pids[i], SIGINT);
+        }
+    }
+}
+
+void parent_proc(){
+    unsigned long lastread[NUMPROC] = {0};
+    unsigned long rd;
+
+    int index;
+    // for (index = 0; index < NUMPROC; index++)
+    //  lastread[index] = 0;
+
+    // start reading
+    int i;
+    for(i = 0; i < (NUMPROC-1) * (NUMLOOP); i++){
+        rd = fifo_rd(f);
+        index = (int)rd/1e6;
+        if (lastread[index] > rd){
+            kill_children(my_procnum);
+            fprintf(stderr,"lastread[%d] = %lu, rd = %lu\n",index,lastread[index],rd);
+            fprintf(stderr,"f->head = %d, f->tail = %d\n",f->head,f->tail);
+            err_exit("fifo out of order. exiting...");
+        }
+        lastread[index] = rd;
+        // fprintf(stderr,"%08lu\n",rd);
+    }
+    fprintf(stderr,"done\n");
+}
+
+void child_proc(){
+    unsigned long my_procid;
+    my_procid = my_procnum * 1e6;
+    int i;
+    for (i = 0; i < NUMLOOP; i++){
+        fifo_wr(f,my_procid + i);
+    }
+    child_rem[0]--;
+    if (!child_rem[0]){
+        kill(f->ac_sem.pids[0],SIGINT);
+        fprintf(stderr,"the deed is done\n");
+    }
+}
+
+int main(int argc, char** argv){
+    unsigned long fifomax;
+    unsigned long rd;
+    my_procnum = 0;
+
+    child_rem = err_mmap(0,sizeof (int),PROT_READ|PROT_WRITE,MAP_SHARED|MAP_ANONYMOUS,-1,0);
+    *child_rem = NUMPROC-1;
+
+    f = err_mmap(0,sizeof (struct fifo),PROT_READ|PROT_WRITE,MAP_SHARED|MAP_ANONYMOUS,-1,0);
+    fifo_init(f);
+
+    int i;
+    for (i = 1; i < NUMPROC; i++){
+        if (err_fork()) {
+            
+        }
+        else {
+            my_procnum = i;
+            break;
+        }
+    }
+    if (my_procnum)
+        child_proc();
+    else
+        parent_proc();
+}
+\end{lstlisting}
+
+\subsection{Makefile}
+
+\begin{lstlisting}
+all: testprog
+
+testprog: PS7.c sem fifo
+    gcc PS7.c tas64.S sem.o fifo.o -o testprog.exe
+
+sem: sem.c
+    gcc -c sem.c -o sem.o
+
+fifo: fifo.c
+    gcc -c fifo.c -o fifo.o
+
+partA: partA.c sem
+    gcc partA.c tas64.S sem.o -o partA.exe
+
+tex: *.tex
+    pdflatex PS7.tex
+
+debug: PS5.c
+    gcc -g PS5.c -o testprog.exe
+
+clean:
+    rm *.o
+    rm *.exe
+\end{lstlisting}
+
+\section {Test Outputs}
+
+The acid test prints ``the deed is done'' on a successful test.
+
+\subsection {BUFSIZ = $2^{23}$, NUMLOOP = 1e5, \\
+64 writers, 1 reader, buffer never fills}
+\begin{lstlisting}
+[lin4@comm08 PS7_Concurrency_and_Synchronization]$ ./testprog.exe 
+the deed is done
+\end{lstlisting}
+
+\subsection {BUFSIZ = $2^{12}$, NUMLOOP = 1e5, \\
+64 writers, 1 reader, buffer fills many times}
+\begin{lstlisting}
+[lin4@comm08 PS7_Concurrency_and_Synchronization]$ ./testprog.exe 
+the deed is done
+\end{lstlisting}
+
+\subsection {remove access semaphore}
+\begin{lstlisting}
+[lin4@comm08 PS7_Concurrency_and_Synchronization]$ ./testprog.exe 
+lastread[1] = 1008026, rd = 1003935
+f->head = 3, f->tail = 4
+ERROR: fifo out of order. exiting...: Interrupted system call
+\end{lstlisting}
+
+\subsection {remove read semaphore}
+\begin{lstlisting}
+[lin4@comm08 PS7_Concurrency_and_Synchronization]$ ./testprog.exe 
+lastread[19] = 19000004, rd = 19000000
+f->head = 2286, f->tail = 4
+ERROR: fifo out of order. exiting...: Interrupted system call
+\end{lstlisting}
+
+\end{document}

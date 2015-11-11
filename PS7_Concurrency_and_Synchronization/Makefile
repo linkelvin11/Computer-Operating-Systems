@@ -13,7 +13,7 @@ partA: partA.c sem
 	gcc partA.c tas64.S sem.o -o partA.exe
 
 tex: *.tex
-	pdflatex PS5.tex
+	pdflatex PS7.tex
 
 debug: PS5.c
 	gcc -g PS5.c -o testprog.exe
