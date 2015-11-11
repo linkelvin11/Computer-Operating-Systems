@@ -7,4 +7,5 @@
 #include <string.h>
 
 #define NUMPROC 64
-#define NUMLOOP 1e3
+#define NUMLOOP 1e5
+#define MYFIFO_BUFSIZ 4096

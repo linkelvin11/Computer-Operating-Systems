@@ -1,8 +1,6 @@
 #include "constants.h"
 #include "sem.h"
 
-#define MYFIFO_BUFSIZ 4096
-
 struct fifo {
 	struct sem rd_sem; // read
 	struct sem wr_sem; // write
