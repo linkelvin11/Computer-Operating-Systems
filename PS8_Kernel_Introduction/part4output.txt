@@ -1,0 +1,11 @@
+(vivid)kelvin@localhost:~/Documents/OS/PS8_Kernel_Introduction$ make part4
+as --64 part4.S -o part4.o
+ld -m elf_x86_64 part4.o -o part4.exe
+(vivid)kelvin@localhost:~/Documents/OS/PS8_Kernel_Introduction$ strace ./part4.exe
+execve("./part4.exe", ["./part4.exe"], [/* 32 vars */]) = 0
+write(1, "This is a test message\n", 23This is a test message
+) = 23
+syscall_999(0x1, 0x4000a6, 0x17, 0, 0, 0) = -1 (errno 38)
+--- SIGSEGV {si_signo=SIGSEGV, si_code=SEGV_MAPERR, si_addr=0xffffffffffffffda} ---
++++ killed by SIGSEGV (core dumped) +++
+Segmentation fault (core dumped)
