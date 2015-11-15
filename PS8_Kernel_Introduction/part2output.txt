@@ -1,0 +1,8 @@
+(vivid)kelvin@localhost:~/Documents/OS/PS8_Kernel_Introduction$ as --64 part2.S -o part2.o
+(vivid)kelvin@localhost:~/Documents/OS/PS8_Kernel_Introduction$ ld -m elf_x86_64 part2.o -o part2.exe
+(vivid)kelvin@localhost:~/Documents/OS/PS8_Kernel_Introduction$ strace ./part2.exe
+execve("./part2.exe", ["./part2.exe"], [/* 31 vars */]) = 0
+write(1, "This is a test message\n", 23This is a test message
+) = 23
+_exit(0)                                = ?
++++ exited with 0 +++
