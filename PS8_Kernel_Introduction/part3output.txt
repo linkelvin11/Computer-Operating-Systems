@@ -1,0 +1,20 @@
+(vivid)kelvin@localhost:~/Documents/OS/PS8_Kernel_Introduction$ make part3
+as --64 part3.S -o part3.o
+ld -m elf_x86_64 part3.o -o part3.exe
+(vivid)kelvin@localhost:~/Documents/OS/PS8_Kernel_Introduction$ strace ./part3.exe
+execve("./part3.exe", ["./part3.exe"], [/* 31 vars */]) = 0
+write(1, "This is a test message\n", 23This is a test message
+) = 23
+--- SIGSEGV {si_signo=SIGSEGV, si_code=SEGV_MAPERR, si_addr=0x17} ---
++++ killed by SIGSEGV (core dumped) +++
+Segmentation fault (core dumped)
+
+
+(vivid)kelvin@localhost:~/Documents/OS/PS8_Kernel_Introduction$ strace ./part3.exe
+execve("./part3.exe", ["./part3.exe"], [/* 31 vars */]) = 0
+write(1, "This is a test message\n", 23This is a test message
+) = 23
+_exit(1)                                = ?
++++ exited with 1 +++
+(vivid)kelvin@localhost:~/Documents/OS/PS8_Kernel_Introduction$ echo $?
+1
