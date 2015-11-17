@@ -20,29 +20,26 @@ int main(int argc, char** argv){
 	}
 
 	struct timespec tns, tne;
-
+	int i;
 	
-
 	switch(argv[1][0]){
 		case '0':
-			printf("case 0\n");
-			int i;
 			err_gettime(CLOCK_REALTIME, &tns);
 			for (i = 0; i < 1000; i++){}
 			err_gettime(CLOCK_REALTIME, &tne);
-			printf("%lu\n",tne.tv_nsec-tns.tv_nsec);
+			printf("It took %lu ns to run an empty loop 1000 times\n",tne.tv_nsec-tns.tv_nsec);
 			break;
 		case '1':
 			err_gettime(CLOCK_REALTIME, &tns);
 			for (i = 0; i < 1000; i++){empty_func();}
 			err_gettime(CLOCK_REALTIME, &tne);
-			printf("%lu\n",tne.tv_nsec-tns.tv_nsec);
+			printf("It took %lu ns to run an empty function call 1000 times\n",tne.tv_nsec-tns.tv_nsec);
 			break;
 		case '2':
 			err_gettime(CLOCK_REALTIME, &tns);
 			for (i = 0; i < 1000; i++){getuid();}
 			err_gettime(CLOCK_REALTIME, &tne);
-			printf("%lu\n",tne.tv_nsec-tns.tv_nsec);
+			printf("It took %lu ns to run a system call 1000 times\n",tne.tv_nsec-tns.tv_nsec);
 			break;
 		default:
 			break;

@@ -1,0 +1,7 @@
+gcc -O0 part5.c -o part5.exe
+./part5.exe 0
+It took 2279 ns to run an empty loop 1000 times
+./part5.exe 1
+It took 2292 ns to run an empty function call 1000 times
+./part5.exe 2
+It took 46892 ns to run a system call 1000 times

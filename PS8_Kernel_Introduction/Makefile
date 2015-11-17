@@ -16,7 +16,12 @@ part4: part4.S
 	ld -m elf_x86_64 part4.o -o part4.exe
 
 part5: part5.c
-	gcc part5.c -o part5.exe
+	gcc -O0 part5.c -o part5.exe
+
+run-part5: part5
+	./part5.exe 0
+	./part5.exe 1
+	./part5.exe 2
 
 tex: *.tex
 	pdflatex PS8.tex
