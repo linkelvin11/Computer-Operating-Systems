@@ -10,7 +10,7 @@
 #include "sched.h"
 #include "adjstack.c"
 
-#define STACK_SIZ 65536
+#define STACK_SIZE 65536
 #define SCHED_NPROC     511  // (maximum pid)-1
 #define SCHED_READY     0
 #define SCHED_RUNNING   1
@@ -75,7 +75,7 @@ void sched_init(void (*init_fn)()){
         err_exit("could not malloc initial process struct");
 
     // mmap a new stack
-    void *init_stack = mmap(0, STACK_SIZ, PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+    void *init_stack = mmap(0, STACK_SIZE, PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
     if(init_stack == MAP_FAILED)
         err_exit("could not mmap stack");
 
@@ -94,8 +94,8 @@ void sched_init(void (*init_fn)()){
 
     // run
     struct savectx curr_ctx;
-    curr_ctx.regs[JB_BP] = init_stack + STACK_SIZ;
-    curr_ctx.regs[JB_SP] = init_stack + STACK_SIZ;
+    curr_ctx.regs[JB_BP] = init_stack + STACK_SIZE;
+    curr_ctx.regs[JB_SP] = init_stack + STACK_SIZE;
     curr_ctx.regs[JB_PC] = init_fn;
     restorectx(&curr_ctx, 0);
 }
@@ -106,8 +106,10 @@ int sched_fork(){
 
     // get new pid
     int child_pid;
-    if ((child_pid = gen_pid()) < 0)
-        err_exit("maximum number of processes reached");
+    if ((child_pid = gen_pid()) < 0){
+        fprintf(stderr,"could not fork: maximum number of processes reached\n");
+        return -1;
+    }
 
     // malloc child proc
     struct sched_proc *child = (struct sched_proc *)malloc(sizeof (struct sched_proc));
@@ -115,7 +117,7 @@ int sched_fork(){
         err_exit("could not malloc child process");
 
     // mmap new stack space
-    void* new_stack = mmap(0, STACK_SIZ, PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+    void* new_stack = mmap(0, STACK_SIZE, PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
     if (new_stack == MAP_FAILED){
         fprintf(stderr,"could not create stack for child process");
         free(child);
@@ -123,7 +125,7 @@ int sched_fork(){
     }
 
     // copy old stack to new stack
-    memcpy(new_stack,curr_proc->stack, STACK_SIZ);
+    memcpy(new_stack,curr_proc->stack, STACK_SIZE);
 
     // initialize child process params
     child->state = SCHED_READY;
@@ -136,7 +138,7 @@ int sched_fork(){
     child->cpu_time_tot = 0;
 
     // adjstack and add child to procsq
-    adjstack(new_stack, new_stack + STACK_SIZ, child->stack - curr_proc->stack);
+    adjstack(new_stack, new_stack + STACK_SIZE, child->stack - curr_proc->stack);
     procsq->procs[child->pid -1] = child; // pid is 1 off from index (see gen_pid())
     procsq->n_procs++;
 
@@ -162,7 +164,6 @@ void sched_exit(int code) {
     curr_proc->state = SCHED_ZOMBIE;
     curr_proc->code = code;
     procsq->n_procs--;
-    procsq->procs[curr_proc->pid - 1] = curr_proc;
 
     // find and wake parent
     int i;
@@ -173,8 +174,6 @@ void sched_exit(int code) {
             if (procsq->procs[i]->state == SCHED_SLEEPING){
                 procsq->procs[i]->state == SCHED_RUNNING;
                 curr_proc->state == SCHED_ZOMBIE;
-                // curr_proc = procsq->procs[i];
-                // curr_proc->state = SCHED_RUNNING;
             }
             break;
         }
@@ -218,7 +217,7 @@ int sched_wait(int *exit_code){
             break;
         }
     }
-    sched_ps();
+
     if (!children_found)
         err_exit("no zombie children found after wakeup");
 
@@ -267,6 +266,7 @@ void sched_ps(){
 }
 
 void sched_switch(){
+    // change the current process to SCHED_READY only if its still active
     if (curr_proc->state == SCHED_RUNNING)
         curr_proc->state = SCHED_READY;
 
@@ -289,6 +289,7 @@ void sched_switch(){
             }
     }
 
+    // switch process
     if(!(savectx(&(curr_proc->ctx)))){
         curr_proc = procsq->procs[best_idx];
         curr_proc->cpu_time = 0;
@@ -302,6 +303,7 @@ void sched_tick(){
     num_ticks++;
     curr_proc->cpu_time++;
     curr_proc->cpu_time_tot++;
+    // switch if 
     if (curr_proc->cpu_time > curr_proc->cpu_time_alloc)
         sched_switch();
 }
