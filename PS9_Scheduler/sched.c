@@ -60,7 +60,7 @@ void sched_init(void (*init_fn)()){
 
     num_ticks = 0;
     setitimer(ITIMER_VIRTUAL, &timer, NULL);
-    //signal(SIGVTALRM, sched_tick);
+    signal(SIGVTALRM, sched_tick);
 
     // Set up signal masks needed
     sigfillset(&full_sigset);
