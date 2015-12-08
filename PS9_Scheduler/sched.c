@@ -137,7 +137,7 @@ int sched_fork(){
 
     // adjstack and add child to procsq
     adjstack(new_stack, new_stack + STACK_SIZ, child->stack - curr_proc->stack);
-    procsq->procs[child->pid -1]; // pid is 1 off from index (see gen_pid())
+    procsq->procs[child->pid -1] = child; // pid is 1 off from index (see gen_pid())
     procsq->n_procs++;
 
     if(!savectx(&child->ctx)){
@@ -162,6 +162,7 @@ void sched_exit(int code) {
     curr_proc->state = SCHED_ZOMBIE;
     curr_proc->code = code;
     procsq->n_procs--;
+    procsq->procs[curr_proc->pid - 1] = curr_proc;
 
     // find and wake parent
     int i;
@@ -171,6 +172,7 @@ void sched_exit(int code) {
             procsq->procs[i]->pid == curr_proc->ppid){
             if (procsq->procs[i]->state == SCHED_SLEEPING){
                 procsq->procs[i]->state == SCHED_RUNNING;
+                curr_proc->state == SCHED_ZOMBIE;
                 // curr_proc = procsq->procs[i];
                 // curr_proc->state = SCHED_RUNNING;
             }
@@ -191,8 +193,8 @@ int sched_wait(int *exit_code){
     int i;
     int children_found = 0;
     for (i = 0; i < SCHED_NPROC; i++){
-        if (procsq[i] &&
-            procsq[i]->ppid == curr_proc->pid){
+        if (procsq->procs[i] &&
+            procsq->procs[i]->ppid == curr_proc->pid){
             children_found = 1;
             break;
         }
@@ -200,13 +202,25 @@ int sched_wait(int *exit_code){
     if (!children_found)
         return -1;
 
-    // given children exist check for zombies, sleeping otherwise
+    // sleep and switch
     curr_proc->state = SCHED_SLEEPING;
     sigprocmask(SIG_UNBLOCK, &full_sigset, NULL);
     sched_switch();
-    sigprocmask(SIG_BLOCK, &full_sigset, NULL);
 
-    sched_switch();
+    // search for zombie child and get exit code
+    sigprocmask(SIG_BLOCK, &full_sigset, NULL);
+    children_found = 0;
+    for (i = 0; i < SCHED_NPROC; i++){
+        if (procsq->procs[i] &&
+            procsq->procs[i]->ppid == curr_proc->pid &&
+            procsq->procs[i]->state == SCHED_ZOMBIE){
+            children_found = 1;
+            break;
+        }
+    }
+    sched_ps();
+    if (!children_found)
+        err_exit("no zombie children found after wakeup");
 
     *exit_code = procsq->procs[i]->code;
     free(procsq->procs[i]);
@@ -218,7 +232,8 @@ int sched_wait(int *exit_code){
 void sched_nice(int niceval){
     if (niceval > 19) niceval = 19;
     else if (niceval < -20) niceval = -20;
-    curr_proc->niceval = niceval;
+    curr_proc->nice = niceval;
+    curr_proc->priority = 20 - niceval;
     return;
 }
 int sched_getpid(){
@@ -227,6 +242,66 @@ int sched_getpid(){
 int sched_getppid(){
     return curr_proc->ppid;
 }
-int sched_gettick(){}
-void sched_ps(){}
-void sched_switch(){}
+int sched_gettick(){
+    return num_ticks;
+}
+
+void sched_ps(){
+    int i;
+    int header = 1;
+    for (i = 0; i < SCHED_NPROC; i++){
+        if(procsq->procs[i]){
+            if (header){
+                fprintf(stderr,"listing all processes:\n");
+                fprintf(stderr,"index\tpid\tppid\tstate\tnice\n");
+                header = 0;
+            }
+            fprintf(stderr,"%d\t%d\t%d\t%d\t%d\n",
+                i,
+                procsq->procs[i]->pid,
+                procsq->procs[i]->ppid,
+                procsq->procs[i]->state,
+                procsq->procs[i]->nice);
+        }
+    }
+}
+
+void sched_switch(){
+    if (curr_proc->state == SCHED_RUNNING)
+        curr_proc->state = SCHED_READY;
+
+    // get process with lowest nice value
+    // if equal nice values, pick if process is not the current process.
+    int i;
+    int best_idx = 0;
+    int least_nice = 50; // greater than max nice
+    for (i = 0; i < SCHED_NPROC; i++){
+        if (procsq->procs[i] && 
+            procsq->procs[i]->state != SCHED_ZOMBIE &&
+            procsq->procs[i]->state != SCHED_SLEEPING)
+            if (procsq->procs[i]->nice < least_nice){
+                best_idx = i;
+                least_nice = procsq->procs[i]->nice;
+            }
+            else if (procsq->procs[i]->nice == least_nice){
+                if (procsq->procs[i] != curr_proc)
+                    best_idx = i;
+            }
+    }
+
+    if(!(savectx(&(curr_proc->ctx)))){
+        curr_proc = procsq->procs[best_idx];
+        curr_proc->cpu_time = 0;
+        curr_proc->state = SCHED_RUNNING;
+        restorectx(&(curr_proc->ctx),1);
+    }
+    return;
+}
+
+void sched_tick(){
+    num_ticks++;
+    curr_proc->cpu_time++;
+    curr_proc->cpu_time_tot++;
+    if (curr_proc->cpu_time > curr_proc->cpu_time_alloc)
+        sched_switch();
+}

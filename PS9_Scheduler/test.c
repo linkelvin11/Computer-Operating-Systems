@@ -5,12 +5,16 @@
 
 void test_parent(){
 	fprintf(stderr,"parent process start\n");
+	int *child_code;
+	sched_wait(child_code);
+	fprintf(stderr,"child exited with code %d\n",*child_code);
 	return;
 }
 
 
 void test_child(){
-	fprintf(stderr,"child proces start\n");
+	fprintf(stderr,"child process start\n");
+	sched_exit(1);
 	return;
 }
 

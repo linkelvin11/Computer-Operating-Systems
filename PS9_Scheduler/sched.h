@@ -53,6 +53,8 @@ int sched_getppid();
 int sched_gettick();
 void sched_ps();
 void sched_switch();
+void sched_tick();
+
 
 
 #endif
