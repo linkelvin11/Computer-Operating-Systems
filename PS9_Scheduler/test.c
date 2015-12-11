@@ -4,8 +4,8 @@
 #include <time.h>
 #include "sched.h"
 
-#define NUM_CHILDREN 10
-#define CHILD_LOOPS 1e9
+#define NUM_CHILDREN 1
+#define CHILD_LOOPS 1e8
 
 int children = 0;
 
@@ -59,11 +59,11 @@ void test(){
 
 int main(int argc, char **argv) {
     srand(time(NULL));
-    struct sigaction sa;
-    sa.sa_flags=0;
-    sigemptyset(&sa.sa_mask);
+    //struct sigaction sa;
+    //sa.sa_flags=0;
+    //sigemptyset(&sa.sa_mask);
     //sa.sa_handler=abrt_handler;
-    sigaction(SIGABRT,&sa,NULL);
+    //sigaction(SIGABRT,&sa,NULL);
     sched_init(test);
     fprintf(stdout, "Should not ever get here.\n");
     return 0;
