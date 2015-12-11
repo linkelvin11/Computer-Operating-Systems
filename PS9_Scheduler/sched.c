@@ -23,6 +23,8 @@ struct sched_waitq *procsq;
 unsigned int num_ticks;
 sigset_t full_sigset;
 
+
+
 // exit with error message
 void err_exit(char *msg){
     fprintf(stderr,"ERROR: %s: %s\n",msg,strerror(errno));
@@ -38,6 +40,16 @@ int gen_pid() {
             return i+1;
     }
     return -1;
+}
+
+void block_sigs(){
+    printf("blocking pid %d\n",curr_proc->pid);
+    sigprocmask(SIG_BLOCK, &full_sigset, NULL);
+}
+
+void unblock_sigs(){
+    printf("unblocking pid %d\n",curr_proc->pid);
+    sigprocmask(SIG_UNBLOCK, &full_sigset, NULL);
 }
 
 void sched_init(void (*init_fn)()){
@@ -102,7 +114,7 @@ void sched_init(void (*init_fn)()){
 
 int sched_fork(){
 
-    sigprocmask(SIG_BLOCK, &full_sigset, NULL);
+    block_sigs();
 
     // get new pid
     int child_pid;
@@ -145,12 +157,11 @@ int sched_fork(){
     if(!savectx(&child->ctx)){
         child->ctx.regs[JB_SP] += child->stack - curr_proc->stack;
         child->ctx.regs[JB_BP] += child->stack - curr_proc->stack;
-        sigprocmask(SIG_UNBLOCK, &full_sigset, NULL);
+        unblock_sigs();
         return child->pid;
     }
     else {
-
-        sigprocmask(SIG_UNBLOCK, &full_sigset, NULL);
+        unblock_sigs();
         return 0;
     }
 
@@ -160,7 +171,8 @@ int sched_fork(){
 void sched_exit(int code) {
 
     // store exit code and terminate process
-    sigprocmask(SIG_BLOCK, &full_sigset, NULL);
+    block_sigs();
+    fprintf(stdout,"sched_exit pid %d\n",curr_proc->pid);
     curr_proc->state = SCHED_ZOMBIE;
     curr_proc->code = code;
     procsq->n_procs--;
@@ -179,14 +191,14 @@ void sched_exit(int code) {
         }
     }
 
-    sigprocmask(SIG_UNBLOCK, &full_sigset, NULL);
+    unblock_sigs();
     sched_switch();
 }
 
 
 int sched_wait(int *exit_code){
 
-    sigprocmask(SIG_BLOCK, &full_sigset, NULL);
+    block_sigs();
 
     // check if children exist
     int i;
@@ -203,11 +215,11 @@ int sched_wait(int *exit_code){
 
     // sleep and switch
     curr_proc->state = SCHED_SLEEPING;
-    sigprocmask(SIG_UNBLOCK, &full_sigset, NULL);
+    unblock_sigs();
     sched_switch();
 
     // search for zombie child and get exit code
-    sigprocmask(SIG_BLOCK, &full_sigset, NULL);
+    block_sigs();
     children_found = 0;
     for (i = 0; i < SCHED_NPROC; i++){
         if (procsq->procs[i] &&
@@ -221,10 +233,14 @@ int sched_wait(int *exit_code){
     if (!children_found)
         err_exit("no zombie children found after wakeup");
 
+    fprintf(stderr,"found zombie child with pid %d\n", procsq->procs[i]->pid);
     *exit_code = procsq->procs[i]->code;
     free(procsq->procs[i]);
     procsq->procs[i] = NULL;
-    sigprocmask(SIG_UNBLOCK, &full_sigset, NULL);
+    fprintf(stderr,"updating process queue\n");
+    sched_ps();
+
+    unblock_sigs();
     return 0;
 
 }
@@ -232,7 +248,6 @@ void sched_nice(int niceval){
     if (niceval > 19) niceval = 19;
     else if (niceval < -20) niceval = -20;
     curr_proc->nice = niceval;
-    curr_proc->priority = 20 - niceval;
     return;
 }
 int sched_getpid(){
@@ -249,46 +264,63 @@ void sched_ps(){
     int i;
     int header = 1;
     for (i = 0; i < SCHED_NPROC; i++){
-        if(procsq->procs[i]){
+        if(procsq->procs[i] != NULL){
             if (header){
                 fprintf(stderr,"listing all processes:\n");
-                fprintf(stderr,"index\tpid\tppid\tstate\tnice\n");
+                fprintf(stderr,"index\tpid\tppid\tstate\tnice\tpriority\n");
                 header = 0;
             }
-            fprintf(stderr,"%d\t%d\t%d\t%d\t%d\n",
+            fprintf(stderr,"%d\t%d\t%d\t%d\t%d\t%d\n",
                 i,
                 procsq->procs[i]->pid,
                 procsq->procs[i]->ppid,
                 procsq->procs[i]->state,
-                procsq->procs[i]->nice);
+                procsq->procs[i]->nice,
+                procsq->procs[i]->priority);
         }
     }
 }
 
 void sched_switch(){
+    block_sigs();
     // change the current process to SCHED_READY only if its still active
     if (curr_proc->state == SCHED_RUNNING)
         curr_proc->state = SCHED_READY;
 
+    sched_nice(curr_proc->nice + 20);
     // get process with lowest nice value
     // if equal nice values, pick if process is not the current process.
     int i;
     int best_idx = 0;
-    int least_nice = 50; // greater than max nice
+    int highest_priority = 0;
     for (i = 0; i < SCHED_NPROC; i++){
         if (procsq->procs[i] && 
             procsq->procs[i]->state != SCHED_ZOMBIE &&
-            procsq->procs[i]->state != SCHED_SLEEPING)
-            if (procsq->procs[i]->nice < least_nice){
+            procsq->procs[i]->state != SCHED_SLEEPING){
+
+            procsq->procs[i]->nice--;
+            procsq->procs[i]->priority = (int) ((20 - procsq->procs[i]->nice) / (procsq->procs[i]->cpu_time_tot+1));
+            if (procsq->procs[i]->priority > 39) procsq->procs[i]->priority = 39;
+
+            if (procsq->procs[i]->priority > highest_priority){
                 best_idx = i;
-                least_nice = procsq->procs[i]->nice;
+                highest_priority = procsq->procs[i]->priority;
             }
-            else if (procsq->procs[i]->nice == least_nice){
+            else if (procsq->procs[i]->priority == highest_priority){
                 if (procsq->procs[i] != curr_proc)
                     best_idx = i;
             }
+        }
+    }
+    if (curr_proc->pid != procsq->procs[best_idx]->pid ){
+        fprintf(stderr, "switching from pid %d into task with pid %d and priority %d\n", 
+            curr_proc->pid, 
+            procsq->procs[best_idx]->pid, 
+            procsq->procs[best_idx]->priority);
+        sched_ps();
     }
 
+    unblock_sigs();
     // switch process
     if(!(savectx(&(curr_proc->ctx)))){
         curr_proc = procsq->procs[best_idx];
@@ -296,14 +328,24 @@ void sched_switch(){
         curr_proc->state = SCHED_RUNNING;
         restorectx(&(curr_proc->ctx),1);
     }
+    
+    unblock_sigs();
+    ///signal(SIGVTALRM, sched_tick);
     return;
 }
 
 void sched_tick(){
     num_ticks++;
+    fprintf(stderr,"tick %d ",num_ticks);
     curr_proc->cpu_time++;
     curr_proc->cpu_time_tot++;
     // switch if 
-    if (curr_proc->cpu_time > curr_proc->cpu_time_alloc)
+    if (curr_proc->cpu_time > curr_proc->cpu_time_alloc){
+        fprintf(stdout,"sched switch on tick\n");
         sched_switch();
+    }
+    else
+        fprintf(stderr,"cpu_time %d cpu_time_alloc %d ",
+            curr_proc->cpu_time,
+            curr_proc->cpu_time_alloc);
 }
