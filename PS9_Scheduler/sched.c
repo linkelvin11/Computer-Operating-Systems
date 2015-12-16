@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <errno.h>
+#include <stddef.h>
 
 #include "sched.h"
 #include "adjstack.c"
@@ -22,7 +23,6 @@ struct sched_proc *curr_proc;
 struct sched_waitq *procsq;
 unsigned int num_ticks;
 sigset_t full_sigset;
-
 
 
 // exit with error message
@@ -64,7 +64,7 @@ void sched_init(void (*init_fn)()){
     // set up periodic interval timer
     struct timeval interval;
     interval.tv_sec = 0;
-    interval.tv_usec = 1e5;
+    interval.tv_usec = 1e4;
 
     struct itimerval timer;
     timer.it_interval = interval;
@@ -78,8 +78,6 @@ void sched_init(void (*init_fn)()){
     sigemptyset(&sa.sa_mask);
     sa.sa_handler = sched_tick;
     sigaction(SIGVTALRM, &sa, NULL);
-
-    //signal(SIGVTALRM, sched_tick);
 
     // Set up signal masks needed
     sigfillset(&full_sigset);
@@ -191,8 +189,7 @@ void sched_exit(int code) {
         if (procsq->procs[i] &&
             procsq->procs[i]->pid == curr_proc->ppid){
             if (procsq->procs[i]->state == SCHED_SLEEPING){
-                procsq->procs[i]->state == SCHED_READY;
-                curr_proc->state == SCHED_ZOMBIE;
+                procsq->procs[i]->state = SCHED_READY;
             }
             break;
         }
@@ -303,6 +300,7 @@ void sched_ps(){
 
 void sched_switch(){
     block_sigs();
+    sched_ps();
     // change the current process to SCHED_READY only if its still active
     if (curr_proc->state == SCHED_RUNNING)
         curr_proc->state = SCHED_READY;
@@ -314,13 +312,18 @@ void sched_switch(){
     int best_idx = curr_proc->pid-1;
     int highest_priority = 0;
     for (i = 0; i < SCHED_NPROC; i++){
+
+        if (procsq->procs[i] &&
+            procsq->procs[i]->nice > -20){
+            procsq->procs[i]->nice--;
+            procsq->procs[i]->priority = (int) ((19 - procsq->procs[i]->nice) / (procsq->procs[i]->cpu_time_tot+1));
+            if (procsq->procs[i]->priority > 39) procsq->procs[i]->priority = 39;
+        }
+
+
         if (procsq->procs[i] && 
             procsq->procs[i]->state != SCHED_ZOMBIE &&
             procsq->procs[i]->state != SCHED_SLEEPING){
-
-            procsq->procs[i]->nice--;
-            procsq->procs[i]->priority = (int) ((20 - procsq->procs[i]->nice) / (procsq->procs[i]->cpu_time_tot+1));
-            if (procsq->procs[i]->priority > 39) procsq->procs[i]->priority = 39;
 
             if (procsq->procs[i]->priority > highest_priority){
                 best_idx = i;
@@ -337,10 +340,8 @@ void sched_switch(){
             curr_proc->pid, 
             procsq->procs[best_idx]->pid, 
             procsq->procs[best_idx]->priority);
-        sched_ps();
     }
     unblock_sigs();
-    //signal(SIGVTALRM, sched_tick);
 
     // switch process
     if(!(savectx(&(curr_proc->ctx)))){
@@ -350,15 +351,12 @@ void sched_switch(){
         
         restorectx(&(curr_proc->ctx),1);
     }
-    
-    //unblock_sigs();
-    ///signal(SIGVTALRM, sched_tick);
     return;
 }
 
 void sched_tick(){
     num_ticks++;
-    fprintf(stderr,"tick %d ",num_ticks);
+
     curr_proc->cpu_time++;
     curr_proc->cpu_time_tot++;
     if (curr_proc->cpu_time > curr_proc->cpu_time_alloc){
@@ -367,11 +365,12 @@ void sched_tick(){
         sigemptyset(&mask); 
         sigaddset(&mask, SIGVTALRM);
         sigprocmask(SIG_UNBLOCK, &mask, NULL);
-        //unblock_sigs();
+
         sched_switch();
     }
-    else
-        fprintf(stderr,"cpu_time %d cpu_time_alloc %d ",
-            curr_proc->cpu_time,
-            curr_proc->cpu_time_alloc);
+    //else
+        //fprintf(stderr,"cpu_time %d cpu_time_alloc %d ",
+        //    curr_proc->cpu_time,
+        //    curr_proc->cpu_time_alloc);
+    return;
 }

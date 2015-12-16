@@ -4,10 +4,12 @@
 #include <time.h>
 #include "sched.h"
 
-#define NUM_CHILDREN 1
-#define CHILD_LOOPS 1e8
+#define NUM_CHILDREN 10
+#define CHILD_LOOPS 1e7
 
 int children = 0;
+
+sigset_t wait_sigset;
 
 void test_parent(){
     fprintf(stderr,"parent process start\n");
@@ -25,9 +27,13 @@ void test_child(){
     int sum = 0;
     
     for (i = 0; i < CHILD_LOOPS; i++){
-        sum += rand()%10;
+        //sum += rand()%10;
+        sigpending(&wait_sigset);
+        if (sigismember(&wait_sigset,SIGVTALRM)){
+        	fprintf(stderr, "caught a SIGVTALRM but didn't call the signal handler\n");
+        }
     }
-    fprintf(stdout,"%d\n",sum);
+    //fprintf(stdout,"%d\n",sum);
     sched_exit(rand()%10);
     return;
 }
@@ -64,6 +70,8 @@ int main(int argc, char **argv) {
     //sigemptyset(&sa.sa_mask);
     //sa.sa_handler=abrt_handler;
     //sigaction(SIGABRT,&sa,NULL);
+    sigemptyset(&wait_sigset);
+    sigaddset(&wait_sigset,SIGVTALRM);
     sched_init(test);
     fprintf(stdout, "Should not ever get here.\n");
     return 0;
