@@ -27,7 +27,11 @@
 \subsection{Makefile}
 \lstinputlisting{Makefile}
 
+\section{Test Script}
+\lstinputlisting{test.c}
+
 \section {Test Outputs}
+Note: I made a call to \lstinline{sched_ps()} before \lstinline{sched_exit()}, so the children will always have state 1 and not state -1 despite the debug output saying ``child about to exit.'
 \lstinputlisting{testoutput.txt}
 
 \end{document}
