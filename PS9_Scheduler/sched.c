@@ -298,12 +298,10 @@ void sched_ps(){
 
 void sched_switch(){
     block_sigs();
-    sched_ps();
     // change the current process to SCHED_READY only if its still active
     if (curr_proc->state == SCHED_RUNNING)
         curr_proc->state = SCHED_READY;
 
-    sched_nice(curr_proc->nice + procsq->n_procs);
     // get process with lowest nice value
     // if equal nice values, pick if process is not the current process.
     int i;
@@ -311,9 +309,7 @@ void sched_switch(){
     int highest_priority = 0;
     for (i = 0; i < SCHED_NPROC; i++){
 
-        if (procsq->procs[i] &&
-            procsq->procs[i]->nice > -20){
-            procsq->procs[i]->nice--;
+        if (procsq->procs[i]){
             procsq->procs[i]->priority = (int) ((19 - procsq->procs[i]->nice) / (procsq->procs[i]->cpu_time_tot+1));
             if (procsq->procs[i]->priority > 39) procsq->procs[i]->priority = 39;
         }
@@ -366,9 +362,5 @@ void sched_tick(){
 
         sched_switch();
     }
-    //else
-        //fprintf(stderr,"cpu_time %d cpu_time_alloc %d ",
-        //    curr_proc->cpu_time,
-        //    curr_proc->cpu_time_alloc);
     return;
 }

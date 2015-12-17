@@ -33,6 +33,9 @@ void test_child(){
         }
     }
 
+    fprintf(stderr,"child about to exit\n");
+    sched_ps();
+
     sched_exit(rand()%10);
     return;
 }
