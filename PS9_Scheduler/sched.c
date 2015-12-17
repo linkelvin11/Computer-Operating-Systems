@@ -43,12 +43,10 @@ int gen_pid() {
 }
 
 void block_sigs(){
-    printf("blocking pid %d\n",curr_proc->pid);
     sigprocmask(SIG_BLOCK, &full_sigset, NULL);
 }
 
 void unblock_sigs(){
-    printf("unblocking pid %d\n",curr_proc->pid);
     sigprocmask(SIG_UNBLOCK, &full_sigset, NULL);
 }
 
@@ -177,7 +175,7 @@ void sched_exit(int code) {
 
     // store exit code and terminate process
     block_sigs();
-    fprintf(stdout,"sched_exit pid %d\n",curr_proc->pid);
+    fprintf(stderr,"sched_exit pid %d\n",curr_proc->pid);
     curr_proc->state = SCHED_ZOMBIE;
     curr_proc->code = code;
     procsq->n_procs--;
@@ -360,7 +358,7 @@ void sched_tick(){
     curr_proc->cpu_time++;
     curr_proc->cpu_time_tot++;
     if (curr_proc->cpu_time > curr_proc->cpu_time_alloc){
-        fprintf(stdout,"sched switch on tick\n");
+        fprintf(stderr,"sched switch on tick\n");
         sigset_t mask; 
         sigemptyset(&mask); 
         sigaddset(&mask, SIGVTALRM);

@@ -5,7 +5,7 @@
 #include "sched.h"
 
 #define NUM_CHILDREN 10
-#define CHILD_LOOPS 1e7
+#define CHILD_LOOPS 5e6
 
 int children = 0;
 
@@ -27,13 +27,12 @@ void test_child(){
     int sum = 0;
     
     for (i = 0; i < CHILD_LOOPS; i++){
-        //sum += rand()%10;
         sigpending(&wait_sigset);
         if (sigismember(&wait_sigset,SIGVTALRM)){
         	fprintf(stderr, "caught a SIGVTALRM but didn't call the signal handler\n");
         }
     }
-    //fprintf(stdout,"%d\n",sum);
+
     sched_exit(rand()%10);
     return;
 }
@@ -65,11 +64,6 @@ void test(){
 
 int main(int argc, char **argv) {
     srand(time(NULL));
-    //struct sigaction sa;
-    //sa.sa_flags=0;
-    //sigemptyset(&sa.sa_mask);
-    //sa.sa_handler=abrt_handler;
-    //sigaction(SIGABRT,&sa,NULL);
     sigemptyset(&wait_sigset);
     sigaddset(&wait_sigset,SIGVTALRM);
     sched_init(test);

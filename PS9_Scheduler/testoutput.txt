@@ -1,44 +1,44 @@
 successfully sched_init the test function
-Asked to adjust child stack by 0XFFFFFFFFFFFE9000 bytes bet 0x7fbb15196000 and 0x7fbb151a6000
-Adjusted saved bp @0x7fbb151a5fd8 to 0x7fbb151a5ff8
-Adjusted saved bp @0x7fbb151a5ff8 to 0x7fbb151a6000
-Enough already, saved BP @0x7fbb151a6000 is 0x21
-Asked to adjust child stack by 0XFFFFFFFFFFFD9000 bytes bet 0x7fbb15186000 and 0x7fbb15196000
-Adjusted saved bp @0x7fbb15195fd8 to 0x7fbb15195ff8
-Adjusted saved bp @0x7fbb15195ff8 to 0x7fbb15196000
-Enough already, saved BP @0x7fbb15196000 is (nil)
-Asked to adjust child stack by 0XFFFFFFFFFFFC9000 bytes bet 0x7fbb15176000 and 0x7fbb15186000
-Adjusted saved bp @0x7fbb15185fd8 to 0x7fbb15185ff8
-Adjusted saved bp @0x7fbb15185ff8 to 0x7fbb15186000
-Enough already, saved BP @0x7fbb15186000 is (nil)
-Asked to adjust child stack by 0XFFFFFFFFFFFB9000 bytes bet 0x7fbb15166000 and 0x7fbb15176000
-Adjusted saved bp @0x7fbb15175fd8 to 0x7fbb15175ff8
-Adjusted saved bp @0x7fbb15175ff8 to 0x7fbb15176000
-Enough already, saved BP @0x7fbb15176000 is (nil)
-Asked to adjust child stack by 0XFFFFFFFFFFFA9000 bytes bet 0x7fbb15156000 and 0x7fbb15166000
-Adjusted saved bp @0x7fbb15165fd8 to 0x7fbb15165ff8
-Adjusted saved bp @0x7fbb15165ff8 to 0x7fbb15166000
-Enough already, saved BP @0x7fbb15166000 is (nil)
-Asked to adjust child stack by 0XFFFFFFFFFFF99000 bytes bet 0x7fbb15146000 and 0x7fbb15156000
-Adjusted saved bp @0x7fbb15155fd8 to 0x7fbb15155ff8
-Adjusted saved bp @0x7fbb15155ff8 to 0x7fbb15156000
-Enough already, saved BP @0x7fbb15156000 is (nil)
-Asked to adjust child stack by 0XFFFFFFFFFFF89000 bytes bet 0x7fbb15136000 and 0x7fbb15146000
-Adjusted saved bp @0x7fbb15145fd8 to 0x7fbb15145ff8
-Adjusted saved bp @0x7fbb15145ff8 to 0x7fbb15146000
-Enough already, saved BP @0x7fbb15146000 is (nil)
-Asked to adjust child stack by 0XFFFFFFFFFFF79000 bytes bet 0x7fbb15126000 and 0x7fbb15136000
-Adjusted saved bp @0x7fbb15135fd8 to 0x7fbb15135ff8
-Adjusted saved bp @0x7fbb15135ff8 to 0x7fbb15136000
-Enough already, saved BP @0x7fbb15136000 is (nil)
-Asked to adjust child stack by 0XFFFFFFFFFFF69000 bytes bet 0x7fbb15116000 and 0x7fbb15126000
-Adjusted saved bp @0x7fbb15125fd8 to 0x7fbb15125ff8
-Adjusted saved bp @0x7fbb15125ff8 to 0x7fbb15126000
-Enough already, saved BP @0x7fbb15126000 is (nil)
-Asked to adjust child stack by 0XFFFFFFFFFFF59000 bytes bet 0x7fbb15106000 and 0x7fbb15116000
-Adjusted saved bp @0x7fbb15115fd8 to 0x7fbb15115ff8
-Adjusted saved bp @0x7fbb15115ff8 to 0x7fbb15116000
-Enough already, saved BP @0x7fbb15116000 is (nil)
+Asked to adjust child stack by 0XFFFFFFFFFFFE9000 bytes bet 0x7f6313133000 and 0x7f6313143000
+Adjusted saved bp @0x7f6313142fd8 to 0x7f6313142ff8
+Adjusted saved bp @0x7f6313142ff8 to 0x7f6313143000
+Enough already, saved BP @0x7f6313143000 is 0x21
+Asked to adjust child stack by 0XFFFFFFFFFFFD9000 bytes bet 0x7f6313123000 and 0x7f6313133000
+Adjusted saved bp @0x7f6313132fd8 to 0x7f6313132ff8
+Adjusted saved bp @0x7f6313132ff8 to 0x7f6313133000
+Enough already, saved BP @0x7f6313133000 is (nil)
+Asked to adjust child stack by 0XFFFFFFFFFFFC9000 bytes bet 0x7f6313113000 and 0x7f6313123000
+Adjusted saved bp @0x7f6313122fd8 to 0x7f6313122ff8
+Adjusted saved bp @0x7f6313122ff8 to 0x7f6313123000
+Enough already, saved BP @0x7f6313123000 is (nil)
+Asked to adjust child stack by 0XFFFFFFFFFFFB9000 bytes bet 0x7f6313103000 and 0x7f6313113000
+Adjusted saved bp @0x7f6313112fd8 to 0x7f6313112ff8
+Adjusted saved bp @0x7f6313112ff8 to 0x7f6313113000
+Enough already, saved BP @0x7f6313113000 is (nil)
+Asked to adjust child stack by 0XFFFFFFFFFFFA9000 bytes bet 0x7f63130f3000 and 0x7f6313103000
+Adjusted saved bp @0x7f6313102fd8 to 0x7f6313102ff8
+Adjusted saved bp @0x7f6313102ff8 to 0x7f6313103000
+Enough already, saved BP @0x7f6313103000 is (nil)
+Asked to adjust child stack by 0XFFFFFFFFFFF99000 bytes bet 0x7f63130e3000 and 0x7f63130f3000
+Adjusted saved bp @0x7f63130f2fd8 to 0x7f63130f2ff8
+Adjusted saved bp @0x7f63130f2ff8 to 0x7f63130f3000
+Enough already, saved BP @0x7f63130f3000 is (nil)
+Asked to adjust child stack by 0XFFFFFFFFFFF89000 bytes bet 0x7f63130d3000 and 0x7f63130e3000
+Adjusted saved bp @0x7f63130e2fd8 to 0x7f63130e2ff8
+Adjusted saved bp @0x7f63130e2ff8 to 0x7f63130e3000
+Enough already, saved BP @0x7f63130e3000 is (nil)
+Asked to adjust child stack by 0XFFFFFFFFFFF79000 bytes bet 0x7f63130c3000 and 0x7f63130d3000
+Adjusted saved bp @0x7f63130d2fd8 to 0x7f63130d2ff8
+Adjusted saved bp @0x7f63130d2ff8 to 0x7f63130d3000
+Enough already, saved BP @0x7f63130d3000 is (nil)
+Asked to adjust child stack by 0XFFFFFFFFFFF69000 bytes bet 0x7f63130b3000 and 0x7f63130c3000
+Adjusted saved bp @0x7f63130c2fd8 to 0x7f63130c2ff8
+Adjusted saved bp @0x7f63130c2ff8 to 0x7f63130c3000
+Enough already, saved BP @0x7f63130c3000 is (nil)
+Asked to adjust child stack by 0XFFFFFFFFFFF59000 bytes bet 0x7f63130a3000 and 0x7f63130b3000
+Adjusted saved bp @0x7f63130b2fd8 to 0x7f63130b2ff8
+Adjusted saved bp @0x7f63130b2ff8 to 0x7f63130b3000
+Enough already, saved BP @0x7f63130b3000 is (nil)
 loop done. 10 children
 parent process start
 waiting for child
@@ -57,6 +57,7 @@ index	pid	ppid	state	nice	priority
 10	11	1	0	0	0
 switching from pid 1 into task with pid 11 and priority 20
 child process start
+sched switch on tick
 listing all processes:
 index	pid	ppid	state	nice	priority
 0	1	1	2	10	9
@@ -72,6 +73,7 @@ index	pid	ppid	state	nice	priority
 10	11	1	1	-1	20
 switching from pid 11 into task with pid 10 and priority 21
 child process start
+sched switch on tick
 listing all processes:
 index	pid	ppid	state	nice	priority
 0	1	1	2	9	10
@@ -87,6 +89,7 @@ index	pid	ppid	state	nice	priority
 10	11	1	0	9	0
 switching from pid 10 into task with pid 9 and priority 22
 child process start
+sched switch on tick
 listing all processes:
 index	pid	ppid	state	nice	priority
 0	1	1	2	8	11
@@ -102,6 +105,7 @@ index	pid	ppid	state	nice	priority
 10	11	1	0	8	0
 switching from pid 9 into task with pid 8 and priority 23
 child process start
+sched switch on tick
 listing all processes:
 index	pid	ppid	state	nice	priority
 0	1	1	2	7	12
@@ -117,6 +121,7 @@ index	pid	ppid	state	nice	priority
 10	11	1	0	7	1
 switching from pid 8 into task with pid 7 and priority 24
 child process start
+sched switch on tick
 listing all processes:
 index	pid	ppid	state	nice	priority
 0	1	1	2	6	13
@@ -132,6 +137,7 @@ index	pid	ppid	state	nice	priority
 10	11	1	0	6	1
 switching from pid 7 into task with pid 6 and priority 25
 child process start
+sched switch on tick
 listing all processes:
 index	pid	ppid	state	nice	priority
 0	1	1	2	5	14
@@ -147,6 +153,7 @@ index	pid	ppid	state	nice	priority
 10	11	1	0	5	1
 switching from pid 6 into task with pid 5 and priority 26
 child process start
+sched switch on tick
 listing all processes:
 index	pid	ppid	state	nice	priority
 0	1	1	2	4	15
@@ -162,6 +169,7 @@ index	pid	ppid	state	nice	priority
 10	11	1	0	4	1
 switching from pid 5 into task with pid 4 and priority 27
 child process start
+sched switch on tick
 listing all processes:
 index	pid	ppid	state	nice	priority
 0	1	1	2	3	16
@@ -177,6 +185,7 @@ index	pid	ppid	state	nice	priority
 10	11	1	0	3	1
 switching from pid 4 into task with pid 3 and priority 28
 child process start
+sched switch on tick
 listing all processes:
 index	pid	ppid	state	nice	priority
 0	1	1	2	2	17
@@ -192,6 +201,7 @@ index	pid	ppid	state	nice	priority
 10	11	1	0	2	1
 switching from pid 3 into task with pid 2 and priority 29
 child process start
+sched switch on tick
 listing all processes:
 index	pid	ppid	state	nice	priority
 0	1	1	2	1	18
@@ -206,9 +216,10 @@ index	pid	ppid	state	nice	priority
 9	10	1	0	1	1
 10	11	1	0	1	1
 switching from pid 2 into task with pid 11 and priority 1
+sched_exit pid 11
 listing all processes:
 index	pid	ppid	state	nice	priority
-0	1	1	2	0	19
+0	1	1	0	0	19
 1	2	1	0	0	1
 2	3	1	0	0	1
 3	4	1	0	0	1
@@ -218,8 +229,25 @@ index	pid	ppid	state	nice	priority
 7	8	1	0	0	1
 8	9	1	0	0	1
 9	10	1	0	0	1
-10	11	1	1	0	1
-switching from pid 11 into task with pid 10 and priority 1
+10	11	1	-1	0	1
+switching from pid 11 into task with pid 1 and priority 20
+found zombie child with pid 11
+updating process queue
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	1	-1	20
+1	2	1	0	-1	1
+2	3	1	0	-1	1
+3	4	1	0	-1	1
+4	5	1	0	-1	1
+5	6	1	0	-1	1
+6	7	1	0	-1	1
+7	8	1	0	-1	1
+8	9	1	0	-1	1
+9	10	1	0	-1	1
+child exited with code 5
+parent process start
+waiting for child
 listing all processes:
 index	pid	ppid	state	nice	priority
 0	1	1	2	-1	20
@@ -231,12 +259,12 @@ index	pid	ppid	state	nice	priority
 6	7	1	0	-1	1
 7	8	1	0	-1	1
 8	9	1	0	-1	1
-9	10	1	1	-1	1
-10	11	1	0	10	0
-switching from pid 10 into task with pid 9 and priority 1
+9	10	1	0	-1	1
+switching from pid 1 into task with pid 10 and priority 1
+sched switch on tick
 listing all processes:
 index	pid	ppid	state	nice	priority
-0	1	1	2	-2	21
+0	1	1	2	8	11
 1	2	1	0	-2	1
 2	3	1	0	-2	1
 3	4	1	0	-2	1
@@ -244,535 +272,279 @@ index	pid	ppid	state	nice	priority
 5	6	1	0	-2	1
 6	7	1	0	-2	1
 7	8	1	0	-2	1
-8	9	1	1	-2	1
-9	10	1	0	9	0
-10	11	1	0	9	0
-switching from pid 9 into task with pid 8 and priority 1
+8	9	1	0	-2	1
+9	10	1	1	-2	1
+switching from pid 10 into task with pid 9 and priority 1
+sched_exit pid 9
 listing all processes:
 index	pid	ppid	state	nice	priority
-0	1	1	2	-3	22
+0	1	1	0	7	12
 1	2	1	0	-3	1
 2	3	1	0	-3	1
 3	4	1	0	-3	1
 4	5	1	0	-3	1
 5	6	1	0	-3	1
 6	7	1	0	-3	1
-7	8	1	1	-3	1
-8	9	1	0	8	0
-9	10	1	0	8	0
-10	11	1	0	8	0
-switching from pid 8 into task with pid 7 and priority 1
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-4	23
-1	2	1	0	-4	1
-2	3	1	0	-4	1
-3	4	1	0	-4	1
-4	5	1	0	-4	1
-5	6	1	0	-4	1
-6	7	1	1	-4	1
-7	8	1	0	7	0
-8	9	1	0	7	0
+7	8	1	0	-3	1
+8	9	1	-1	-3	1
 9	10	1	0	7	0
-10	11	1	0	7	0
-switching from pid 7 into task with pid 6 and priority 2
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-5	24
-1	2	1	0	-5	2
-2	3	1	0	-5	2
-3	4	1	0	-5	2
-4	5	1	0	-5	2
-5	6	1	1	-5	2
-6	7	1	0	6	0
-7	8	1	0	6	0
-8	9	1	0	6	0
-9	10	1	0	6	0
-10	11	1	0	6	0
-switching from pid 6 into task with pid 5 and priority 2
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-6	25
-1	2	1	0	-6	2
-2	3	1	0	-6	2
-3	4	1	0	-6	2
-4	5	1	1	-6	2
-5	6	1	0	5	0
-6	7	1	0	5	0
-7	8	1	0	5	0
-8	9	1	0	5	0
-9	10	1	0	5	0
-10	11	1	0	5	0
-switching from pid 5 into task with pid 4 and priority 2
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-7	26
-1	2	1	0	-7	2
-2	3	1	0	-7	2
-3	4	1	1	-7	2
-4	5	1	0	4	0
-5	6	1	0	4	0
-6	7	1	0	4	0
-7	8	1	0	4	0
-8	9	1	0	4	0
-9	10	1	0	4	0
-10	11	1	0	4	0
-switching from pid 4 into task with pid 3 and priority 2
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-8	27
-1	2	1	0	-8	2
-2	3	1	1	-8	2
-3	4	1	0	3	0
-4	5	1	0	3	0
-5	6	1	0	3	0
-6	7	1	0	3	0
-7	8	1	0	3	0
-8	9	1	0	3	0
-9	10	1	0	3	0
-10	11	1	0	3	0
-switching from pid 3 into task with pid 2 and priority 2
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-9	28
-1	2	1	1	-9	2
-2	3	1	0	2	0
-3	4	1	0	2	0
-4	5	1	0	2	0
-5	6	1	0	2	0
-6	7	1	0	2	0
-7	8	1	0	2	0
-8	9	1	0	2	0
-9	10	1	0	2	0
-10	11	1	0	2	0
-switching from pid 2 into task with pid 11 and priority 0
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-10	29
-1	2	1	0	1	0
-2	3	1	0	1	0
-3	4	1	0	1	0
-4	5	1	0	1	0
-5	6	1	0	1	0
-6	7	1	0	1	0
-7	8	1	0	1	0
-8	9	1	0	1	0
-9	10	1	0	1	0
-10	11	1	1	1	0
-switching from pid 11 into task with pid 10 and priority 0
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-11	30
-1	2	1	0	0	0
-2	3	1	0	0	0
-3	4	1	0	0	0
-4	5	1	0	0	0
-5	6	1	0	0	0
-6	7	1	0	0	0
-7	8	1	0	0	0
-8	9	1	0	0	0
-9	10	1	1	0	0
-10	11	1	0	11	0
-switching from pid 10 into task with pid 11 and priority 0
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	0	-12	31
-1	2	1	0	-1	0
-2	3	1	0	-1	0
-3	4	1	0	-1	0
-4	5	1	0	-1	0
-5	6	1	0	-1	0
-6	7	1	0	-1	0
-7	8	1	0	-1	0
-8	9	1	0	-1	0
-9	10	1	0	10	0
-10	11	1	-1	10	0
-switching from pid 11 into task with pid 1 and priority 32
-found zombie child with pid 11
-updating process queue
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	1	-13	32
-1	2	1	0	-2	0
-2	3	1	0	-2	0
-3	4	1	0	-2	0
-4	5	1	0	-2	0
-5	6	1	0	-2	0
-6	7	1	0	-2	0
-7	8	1	0	-2	0
-8	9	1	0	-2	0
-9	10	1	0	9	0
-child exited with code 7
-parent process start
-waiting for child
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-13	32
-1	2	1	0	-2	0
-2	3	1	0	-2	0
-3	4	1	0	-2	0
-4	5	1	0	-2	0
-5	6	1	0	-2	0
-6	7	1	0	-2	0
-7	8	1	0	-2	0
-8	9	1	0	-2	0
-9	10	1	0	9	0
-switching from pid 1 into task with pid 10 and priority 0
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	0	-4	23
-1	2	1	0	-3	0
-2	3	1	0	-3	0
-3	4	1	0	-3	0
-4	5	1	0	-3	0
-5	6	1	0	-3	0
-6	7	1	0	-3	0
-7	8	1	0	-3	0
-8	9	1	0	-3	0
-9	10	1	-1	8	0
-switching from pid 10 into task with pid 1 and priority 24
-found zombie child with pid 10
-updating process queue
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	1	-5	24
-1	2	1	0	-4	1
-2	3	1	0	-4	1
-3	4	1	0	-4	1
-4	5	1	0	-4	1
-5	6	1	0	-4	1
-6	7	1	0	-4	1
-7	8	1	0	-4	1
-8	9	1	0	-4	1
-child exited with code 4
-parent process start
-waiting for child
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-5	24
-1	2	1	0	-4	1
-2	3	1	0	-4	1
-3	4	1	0	-4	1
-4	5	1	0	-4	1
-5	6	1	0	-4	1
-6	7	1	0	-4	1
-7	8	1	0	-4	1
-8	9	1	0	-4	1
-switching from pid 1 into task with pid 9 and priority 1
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	3	16
-1	2	1	0	-5	1
-2	3	1	0	-5	1
-3	4	1	0	-5	1
-4	5	1	0	-5	1
-5	6	1	0	-5	1
-6	7	1	0	-5	1
-7	8	1	0	-5	1
-8	9	1	1	-5	1
-switching from pid 9 into task with pid 8 and priority 1
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	2	17
-1	2	1	0	-6	1
-2	3	1	0	-6	1
-3	4	1	0	-6	1
-4	5	1	0	-6	1
-5	6	1	0	-6	1
-6	7	1	0	-6	1
-7	8	1	1	-6	1
-8	9	1	0	3	0
-switching from pid 8 into task with pid 7 and priority 1
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	1	18
-1	2	1	0	-7	1
-2	3	1	0	-7	1
-3	4	1	0	-7	1
-4	5	1	0	-7	1
-5	6	1	0	-7	1
-6	7	1	1	-7	1
-7	8	1	0	2	0
-8	9	1	0	2	0
-switching from pid 7 into task with pid 6 and priority 1
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	0	19
-1	2	1	0	-8	1
-2	3	1	0	-8	1
-3	4	1	0	-8	1
-4	5	1	0	-8	1
-5	6	1	1	-8	1
-6	7	1	0	1	0
-7	8	1	0	1	0
-8	9	1	0	1	0
-switching from pid 6 into task with pid 5 and priority 1
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-1	20
-1	2	1	0	-9	1
-2	3	1	0	-9	1
-3	4	1	0	-9	1
-4	5	1	1	-9	1
-5	6	1	0	0	0
-6	7	1	0	0	0
-7	8	1	0	0	0
-8	9	1	0	0	0
-switching from pid 5 into task with pid 4 and priority 1
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-2	21
-1	2	1	0	-10	1
-2	3	1	0	-10	1
-3	4	1	1	-10	1
-4	5	1	0	-1	0
-5	6	1	0	-1	0
-6	7	1	0	-1	0
-7	8	1	0	-1	0
-8	9	1	0	-1	0
-switching from pid 4 into task with pid 3 and priority 1
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-3	22
-1	2	1	0	-11	1
-2	3	1	1	-11	1
-3	4	1	0	-2	0
-4	5	1	0	-2	0
-5	6	1	0	-2	0
-6	7	1	0	-2	0
-7	8	1	0	-2	0
-8	9	1	0	-2	0
-switching from pid 3 into task with pid 2 and priority 1
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	-4	23
-1	2	1	1	-12	1
-2	3	1	0	-3	0
-3	4	1	0	-3	0
-4	5	1	0	-3	0
-5	6	1	0	-3	0
-6	7	1	0	-3	0
-7	8	1	0	-3	0
-8	9	1	0	-3	0
-switching from pid 2 into task with pid 9 and priority 0
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	0	-5	24
-1	2	1	0	-4	0
-2	3	1	0	-4	0
-3	4	1	0	-4	0
-4	5	1	0	-4	0
-5	6	1	0	-4	0
-6	7	1	0	-4	0
-7	8	1	0	-4	0
-8	9	1	-1	-4	0
-switching from pid 9 into task with pid 1 and priority 25
+switching from pid 9 into task with pid 1 and priority 13
 found zombie child with pid 9
 updating process queue
 listing all processes:
 index	pid	ppid	state	nice	priority
-0	1	1	1	-6	25
-1	2	1	0	-5	0
-2	3	1	0	-5	0
-3	4	1	0	-5	0
-4	5	1	0	-5	0
-5	6	1	0	-5	0
-6	7	1	0	-5	0
-7	8	1	0	-5	0
-child exited with code 8
+0	1	1	1	6	13
+1	2	1	0	-4	1
+2	3	1	0	-4	1
+3	4	1	0	-4	1
+4	5	1	0	-4	1
+5	6	1	0	-4	1
+6	7	1	0	-4	1
+7	8	1	0	-4	1
+9	10	1	0	6	0
+child exited with code 0
 parent process start
 waiting for child
 listing all processes:
 index	pid	ppid	state	nice	priority
-0	1	1	2	-6	25
-1	2	1	0	-5	0
-2	3	1	0	-5	0
-3	4	1	0	-5	0
-4	5	1	0	-5	0
-5	6	1	0	-5	0
-6	7	1	0	-5	0
-7	8	1	0	-5	0
-switching from pid 1 into task with pid 8 and priority 0
+0	1	1	2	6	13
+1	2	1	0	-4	1
+2	3	1	0	-4	1
+3	4	1	0	-4	1
+4	5	1	0	-4	1
+5	6	1	0	-4	1
+6	7	1	0	-4	1
+7	8	1	0	-4	1
+9	10	1	0	6	0
+switching from pid 1 into task with pid 8 and priority 2
+sched_exit pid 8
 listing all processes:
 index	pid	ppid	state	nice	priority
-0	1	1	0	1	18
-1	2	1	0	-6	0
-2	3	1	0	-6	0
-3	4	1	0	-6	0
-4	5	1	0	-6	0
-5	6	1	0	-6	0
-6	7	1	0	-6	0
-7	8	1	-1	-6	0
-switching from pid 8 into task with pid 1 and priority 19
+0	1	1	0	14	5
+1	2	1	0	-5	2
+2	3	1	0	-5	2
+3	4	1	0	-5	2
+4	5	1	0	-5	2
+5	6	1	0	-5	2
+6	7	1	0	-5	2
+7	8	1	-1	-5	2
+9	10	1	0	5	0
+switching from pid 8 into task with pid 1 and priority 6
 found zombie child with pid 8
 updating process queue
 listing all processes:
 index	pid	ppid	state	nice	priority
-0	1	1	1	0	19
-1	2	1	0	-7	0
-2	3	1	0	-7	0
-3	4	1	0	-7	0
-4	5	1	0	-7	0
-5	6	1	0	-7	0
-6	7	1	0	-7	0
-child exited with code 1
-parent process start
-waiting for child
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	0	19
-1	2	1	0	-7	0
-2	3	1	0	-7	0
-3	4	1	0	-7	0
-4	5	1	0	-7	0
-5	6	1	0	-7	0
-6	7	1	0	-7	0
-switching from pid 1 into task with pid 7 and priority 0
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	0	6	13
-1	2	1	0	-8	0
-2	3	1	0	-8	0
-3	4	1	0	-8	0
-4	5	1	0	-8	0
-5	6	1	0	-8	0
-6	7	1	-1	-8	0
-switching from pid 7 into task with pid 1 and priority 14
-found zombie child with pid 7
-updating process queue
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	1	5	14
-1	2	1	0	-9	0
-2	3	1	0	-9	0
-3	4	1	0	-9	0
-4	5	1	0	-9	0
-5	6	1	0	-9	0
-child exited with code 9
-parent process start
-waiting for child
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	5	14
-1	2	1	0	-9	0
-2	3	1	0	-9	0
-3	4	1	0	-9	0
-4	5	1	0	-9	0
-5	6	1	0	-9	0
-switching from pid 1 into task with pid 6 and priority 0
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	0	10	9
-1	2	1	0	-10	0
-2	3	1	0	-10	0
-3	4	1	0	-10	0
-4	5	1	0	-10	0
-5	6	1	-1	-10	0
-switching from pid 6 into task with pid 1 and priority 10
-found zombie child with pid 6
-updating process queue
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	1	9	10
-1	2	1	0	-11	0
-2	3	1	0	-11	0
-3	4	1	0	-11	0
-4	5	1	0	-11	0
-child exited with code 6
-parent process start
-waiting for child
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	9	10
-1	2	1	0	-11	0
-2	3	1	0	-11	0
-3	4	1	0	-11	0
-4	5	1	0	-11	0
-switching from pid 1 into task with pid 5 and priority 0
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	0	13	6
-1	2	1	0	-12	0
-2	3	1	0	-12	0
-3	4	1	0	-12	0
-4	5	1	-1	-12	0
-switching from pid 5 into task with pid 1 and priority 7
-found zombie child with pid 5
-updating process queue
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	1	12	7
-1	2	1	0	-13	0
-2	3	1	0	-13	0
-3	4	1	0	-13	0
-child exited with code 5
-parent process start
-waiting for child
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	12	7
-1	2	1	0	-13	0
-2	3	1	0	-13	0
-3	4	1	0	-13	0
-switching from pid 1 into task with pid 4 and priority 0
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	2	15	4
-1	2	1	0	-14	0
-2	3	1	0	-14	0
-3	4	1	1	-14	0
-switching from pid 4 into task with pid 3 and priority 1
-listing all processes:
-index	pid	ppid	state	nice	priority
-0	1	1	0	14	5
-1	2	1	0	-15	1
-2	3	1	-1	-15	1
-3	4	1	0	-11	0
-switching from pid 3 into task with pid 1 and priority 6
-found zombie child with pid 3
-updating process queue
-listing all processes:
-index	pid	ppid	state	nice	priority
 0	1	1	1	13	6
-1	2	1	0	-16	1
-3	4	1	0	-12	0
-child exited with code 9
+1	2	1	0	-6	2
+2	3	1	0	-6	2
+3	4	1	0	-6	2
+4	5	1	0	-6	2
+5	6	1	0	-6	2
+6	7	1	0	-6	2
+9	10	1	0	4	0
+child exited with code 2
 parent process start
 waiting for child
 listing all processes:
 index	pid	ppid	state	nice	priority
 0	1	1	2	13	6
-1	2	1	0	-16	1
-3	4	1	0	-12	0
-switching from pid 1 into task with pid 2 and priority 1
+1	2	1	0	-6	2
+2	3	1	0	-6	2
+3	4	1	0	-6	2
+4	5	1	0	-6	2
+5	6	1	0	-6	2
+6	7	1	0	-6	2
+9	10	1	0	4	0
+switching from pid 1 into task with pid 7 and priority 2
+sched_exit pid 7
 listing all processes:
 index	pid	ppid	state	nice	priority
-0	1	1	0	15	4
-1	2	1	-1	-17	1
-3	4	1	0	-13	0
-switching from pid 2 into task with pid 1 and priority 5
+0	1	1	0	18	1
+1	2	1	0	-7	2
+2	3	1	0	-7	2
+3	4	1	0	-7	2
+4	5	1	0	-7	2
+5	6	1	0	-7	2
+6	7	1	-1	-7	2
+9	10	1	0	3	0
+switching from pid 7 into task with pid 6 and priority 2
+sched_exit pid 6
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	0	17	2
+1	2	1	0	-8	2
+2	3	1	0	-8	2
+3	4	1	0	-8	2
+4	5	1	0	-8	2
+5	6	1	-1	-8	2
+6	7	1	-1	-1	1
+9	10	1	0	2	0
+switching from pid 6 into task with pid 1 and priority 3
+found zombie child with pid 6
+updating process queue
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	1	16	3
+1	2	1	0	-9	2
+2	3	1	0	-9	2
+3	4	1	0	-9	2
+4	5	1	0	-9	2
+6	7	1	-1	-2	1
+9	10	1	0	1	0
+child exited with code 6
+parent process start
+waiting for child
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	2	16	3
+1	2	1	0	-9	2
+2	3	1	0	-9	2
+3	4	1	0	-9	2
+4	5	1	0	-9	2
+6	7	1	-1	-2	1
+9	10	1	0	1	0
+switching from pid 1 into task with pid 5 and priority 2
+sched_exit pid 5
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	0	18	1
+1	2	1	0	-10	2
+2	3	1	0	-10	2
+3	4	1	0	-10	2
+4	5	1	-1	-10	2
+6	7	1	-1	-3	1
+9	10	1	0	0	0
+switching from pid 5 into task with pid 4 and priority 2
+sched_exit pid 4
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	0	17	2
+1	2	1	0	-11	2
+2	3	1	0	-11	2
+3	4	1	-1	-11	2
+4	5	1	-1	-6	1
+6	7	1	-1	-4	1
+9	10	1	0	-1	0
+switching from pid 4 into task with pid 1 and priority 3
+found zombie child with pid 4
+updating process queue
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	1	16	3
+1	2	1	0	-12	2
+2	3	1	0	-12	2
+4	5	1	-1	-7	1
+6	7	1	-1	-5	1
+9	10	1	0	-2	0
+child exited with code 5
+parent process start
+waiting for child
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	2	16	3
+1	2	1	0	-12	2
+2	3	1	0	-12	2
+4	5	1	-1	-7	1
+6	7	1	-1	-5	1
+9	10	1	0	-2	0
+switching from pid 1 into task with pid 3 and priority 2
+sched_exit pid 3
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	0	18	1
+1	2	1	0	-13	2
+2	3	1	-1	-13	2
+4	5	1	-1	-8	1
+6	7	1	-1	-6	1
+9	10	1	0	-3	0
+switching from pid 3 into task with pid 2 and priority 2
+sched_exit pid 2
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	0	17	2
+1	2	1	-1	-14	2
+2	3	1	-1	-11	1
+4	5	1	-1	-9	1
+6	7	1	-1	-7	1
+9	10	1	0	-4	1
+switching from pid 2 into task with pid 1 and priority 3
 found zombie child with pid 2
 updating process queue
 listing all processes:
 index	pid	ppid	state	nice	priority
-0	1	1	1	14	5
-3	4	1	0	-14	0
+0	1	1	1	16	3
+2	3	1	-1	-12	1
+4	5	1	-1	-10	1
+6	7	1	-1	-8	1
+9	10	1	0	-5	1
 child exited with code 9
 parent process start
 waiting for child
 listing all processes:
 index	pid	ppid	state	nice	priority
-0	1	1	2	14	5
-3	4	1	0	-14	0
-switching from pid 1 into task with pid 4 and priority 0
+0	1	1	2	16	3
+2	3	1	-1	-12	1
+4	5	1	-1	-10	1
+6	7	1	-1	-8	1
+9	10	1	0	-5	1
+switching from pid 1 into task with pid 10 and priority 1
+sched_exit pid 10
 listing all processes:
 index	pid	ppid	state	nice	priority
-0	1	1	0	15	4
-3	4	1	-1	-15	0
-switching from pid 4 into task with pid 1 and priority 5
-found zombie child with pid 4
+0	1	1	0	17	2
+2	3	1	-1	-13	1
+4	5	1	-1	-11	1
+6	7	1	-1	-9	1
+9	10	1	-1	-6	1
+switching from pid 10 into task with pid 1 and priority 3
+found zombie child with pid 3
 updating process queue
 listing all processes:
 index	pid	ppid	state	nice	priority
-0	1	1	1	14	5
-child exited with code 2
+0	1	1	1	16	3
+4	5	1	-1	-12	1
+6	7	1	-1	-10	1
+9	10	1	-1	-6	1
+child exited with code 1
+parent process start
+waiting for child
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	2	16	3
+4	5	1	-1	-12	1
+6	7	1	-1	-10	1
+9	10	1	-1	-6	1
+found zombie child with pid 5
+updating process queue
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	1	16	3
+6	7	1	-1	-11	1
+9	10	1	-1	-7	1
+child exited with code 3
+parent process start
+waiting for child
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	2	16	3
+6	7	1	-1	-11	1
+9	10	1	-1	-7	1
+found zombie child with pid 7
+updating process queue
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	1	16	3
+9	10	1	-1	-8	1
+child exited with code 7
+parent process start
+waiting for child
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	2	16	3
+9	10	1	-1	-8	1
+found zombie child with pid 10
+updating process queue
+listing all processes:
+index	pid	ppid	state	nice	priority
+0	1	1	1	16	3
+child exited with code 4
