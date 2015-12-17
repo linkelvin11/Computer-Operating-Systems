@@ -25,7 +25,7 @@ void test_child(){
     fprintf(stderr,"child process start\n");
     int i;
     int sum = 0;
-    
+
     for (i = 0; i < CHILD_LOOPS; i++){
         sigpending(&wait_sigset);
         if (sigismember(&wait_sigset,SIGVTALRM)){
@@ -43,6 +43,7 @@ void test(){
     int i;
     for (i = 0; i < NUM_CHILDREN; i++){
         children++;
+        sched_nice(rand()%19);
         switch (sched_fork()){
             case 0:
                 test_child();

@@ -147,7 +147,7 @@ int sched_fork(){
     child->pid = child_pid;
     child->ppid = curr_proc->pid;
     child->stack = new_stack;
-    child->nice = 0;
+    child->nice = curr_proc->nice;
     child->cpu_time = curr_proc->cpu_time;
     child->cpu_time_alloc = curr_proc->cpu_time_alloc;
     child->cpu_time_tot = 0;
