@@ -3,8 +3,8 @@ all: client host
 client: client.c constants
 	gcc client.c -o client.exe constants.o
 
-host: host.c constants
-	gcc host.c -o host.exe constants.o
+host: host.c
+	gcc host.c -o host.exe
 
 constants: constants.c constants.h
 	gcc -c constants.c -o constants.o
