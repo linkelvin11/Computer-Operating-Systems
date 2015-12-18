@@ -1,0 +1,15 @@
+(vivid)kelvin@localhost:~/Documents/OS/PS6_TCP_Flow$ netcat localhost 60001
+LIST
+you are client 5
+listing all connections...
+client found: 4
+client found: 5
+done listing connections
+CONNECT TO 4
+connected to client 4
+Hello, client 4
+message recieved
+recieved message from client 4: Go away, client 5
+
+ok, bye
+message recieved
