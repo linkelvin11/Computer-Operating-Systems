@@ -35,4 +35,21 @@
 \subsubsection{client 5}
 \lstinputlisting{client5.txt}
 
+\subsection{Hexdump}
+This script assumes the reciever is initialized before all other clients.
+The host will automatically assign the lowest possible file descriptor to the client, which in this case is always 4
+(The listener takes up file descriptor 3).
+Two instances of the hexdump script are piped to two new instances of the client, which will automatically connect to client 4.
+
+The server is able to handle the two writers and single reader properly.
+Only the last 4 transmissions are attached for the sake of brevity.
+\subsubsection{hexdump script}
+\lstinputlisting{sendrand.sh}
+
+\subsubsection{Server Output}
+\lstinputlisting{hexdump_server.txt}
+
+\subsubsection{Reciever Output}
+\lstinputlisting{hexdump_reciever.txt}
+
 \end{document}
