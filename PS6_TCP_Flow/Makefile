@@ -1,4 +1,4 @@
-all: client host
+all: host
 
 host: host.c
 	gcc host.c -o host.exe
